@@ -1,0 +1,26 @@
+<mat-card class="target-settings-card">
+  <mat-card-header>
+    <mat-card-title>🔧 Target Settings</mat-card-title>
+  </mat-card-header>
+  <ng-container *ngIf="isLoading; else targetSettings">
+    <app-loader></app-loader>
+  </ng-container>
+<ng-template #targetSettings>
+<div class="automation-wrapper">
+  <div class="limits-section" *ngFor="let key of objectKeys(values)">
+    <h3>{{valueLabels[key]}}</h3>
+    <div class="limit-row" *ngFor="let item of objectKeys(valueLevels)">
+      <span class="limit-label">{{ valueLevels[item] }}</span>
+      <div class="limit-controls">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(key, item, -0.1, true)">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <input matInput type="number" [placeholder]="valueLevels[item]" class="value-display" (blur)="onBlur(key, item, $event)" [ngModel]="getValue(key, item)"/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(key, item, 0.1, true)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</ng-template>

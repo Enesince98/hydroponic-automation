@@ -1,0 +1,31 @@
+<mat-sidenav-container class="app-container">
+  <mat-sidenav #drawer mode="push" class="app-sidenav">
+    <mat-toolbar color="primary">Menu</mat-toolbar>
+    <mat-nav-list>
+      <a routerLink="/dashboard" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>dashboard</mat-icon>
+        <span class = "sidebar-item-span">Dashboard</span>
+      </a>
+      <a routerLink="/pumps" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>power</mat-icon>
+        <span class = "sidebar-item-span">Pumps</span>
+      </a>
+      <a routerLink="/settings" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>settings</mat-icon>
+        <span class = "sidebar-item-span">Settings</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button mat-icon-button (click)="drawer.toggle()" class="hide-on-large">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Hydroponic Control</span>
+    </mat-toolbar>
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,25 @@
+<mat-card class="target-settings-card">
+  <mat-card-header>
+    <mat-card-title>🔧 Pumps</mat-card-title>
+  </mat-card-header>
+<ng-container *ngIf="isLoading; else pumpControl">
+	<app-loader></app-loader>
+</ng-container>
+<ng-template #pumpControl>
+	<div class="automation-wrapper">
+  <div class="limits-section" *ngFor="let key of objectKeys(pumpStatusData)">
+    <h3>{{pumpStatusLabels[key]}}</h3>
+    <div class="limit-row">
+      <div class="limit-controls">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(key, -1, true)">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <input matInput type="number" [placeholder]="pumpStatusLabels[key]" class="value-display" (blur)="onBlur(key, $event)" [ngModel]="pumpStatusData[key]"/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(key, 1, true)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</ng-template>

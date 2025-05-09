@@ -1,0 +1,146 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboard-section {
+  flex: 2;
+  min-width: 60%;
+}
+
+.dashboard-side {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.sensor-card {
+  text-align: center;
+  padding: 10px;
+  border-radius: 12px;
+
+  &.temperature {
+    background: #fff3e0;
+    color: #ef6c00;
+  }
+
+  &.ph {
+    background: #e8f5e9;
+    color: #43a047;
+  }
+
+  &.ec {
+    background: #e3f2fd;
+    color: #1e88e5;
+  }
+
+  .sensor-value {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+  }
+}
+
+
+.pump-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.mat-mdc-card-content:last-child {
+  padding-bottom: 0;
+}
+
+
+.pump-status-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  mat-card-header {
+    background-color: #f5f5f5;
+    text-align: center;
+    padding: 10px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  mat-card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  mat-card-content {
+    padding: 0;
+  }
+
+  .status-container {
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px 5px 10px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .status-icon {
+    width: 100%;
+    height: 100%;
+    font-size: 3rem;
+    transition: color 0.3s ease;
+    text-align: center;
+  }
+
+  .status-on {
+    background: #4caf50; /* Red for OFF */
+    color: #FFFAEF;
+  }
+
+  .status-off {
+    background: #D11D27; /* Red for OFF */
+    color: #FFFAEF;
+  }
+
+  .status-text {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-label {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .status-description {
+    font-size: 1rem;
+    color: #666;
+  }
+}
+mat-card-content{
+  border-radius: 0 0 16px 16px;
+}
+
+.pump-status-container{
+  display: flex;
+  gap: 10px;
+}

@@ -1,0 +1,103 @@
+<head>
+	<meta charset="UTF-8" />
+  <title>Hydroponic Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="/socket.io/socket.io.ts"></script> <!-- ✅ Add this -->
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f0f8ff; }
+    h1 { color: #228B22; }
+    .card { margin-top: 1rem; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .chart-container { height: 200px; margin-top: 1rem; }
+    canvas { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+<body>
+	<h1>🌿 Hydroponics Live Dashboard</h1>
+  <div class="card">
+    <p><strong>pH:</strong> <span id="ph">--</span></p>
+    <p><strong>EC:</strong> <span id="ec">--</span></p>
+    <p><strong>Temperature:</strong> <span id="temp">--</span> °C</p>
+  </div>
+  <div class="chart-container"><canvas id="phChart"></canvas></div>
+  <div class="chart-container"><canvas id="ecChart"></canvas></div>
+  <div class="chart-container"><canvas id="tempChart"></canvas></div>
+  <div class="card">
+    <h2>💧 Pump Control</h2>
+    <button onclick="controlPump('on')">Turn Pump ON</button>
+    <button onclick="controlPump('off')">Turn Pump OFF</button>
+  </div>
+
+  <script>
+    const socket = io();
+    const MAX_POINTS = 86400;
+
+    const timeLabels = [];
+
+    const makeChart = (ctx, label, color) => new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [{
+          label: label,
+          data: [],
+          borderColor: color,
+          borderWidth: 2,
+          fill: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        maintainAspectRatio: false,
+        scales: {
+          x: { display: true },
+          y: { beginAtZero: false }
+        }
+      }
+    });
+
+    const phChart = makeChart(document.getElementById('phChart'), 'pH', 'green');
+    const ecChart = makeChart(document.getElementById('ecChart'), 'EC', 'blue');
+    const tempChart = makeChart(document.getElementById('tempChart'), 'Temp °C', 'orange');
+
+    const updateChart = (chart, value) => {
+      if (chart.data.datasets[0].data.length >= MAX_POINTS) {
+        chart.data.datasets[0].data.shift();
+        chart.data.labels.shift();
+      }
+      chart.data.datasets[0].data.push(parseFloat(value));
+      chart.data.labels.push(new Date().toLocaleTimeString());
+      chart.update();
+    };
+
+    socket.on('historyData', (history) => {
+      // Load full history on first connect
+      phChart.data.labels = [...history.time];
+      phChart.data.datasets[0].data = [...history.pH];
+
+      ecChart.data.labels = [...history.time];
+      ecChart.data.datasets[0].data = [...history.EC];
+
+      tempChart.data.labels = [...history.time];
+      tempChart.data.datasets[0].data = [...history.T];
+
+      phChart.update();
+      ecChart.update();
+      tempChart.update();
+    });
+    
+    function controlPump(state) {
+      socket.emit('controlPump', state); // 'on' or 'off'
+    }
+
+    socket.on('sensorData', (data) => {
+      document.getElementById('ph').textContent = data.pH || '--';
+      document.getElementById('ec').textContent = data.EC || '--';
+      document.getElementById('temp').textContent = data.T || '--';
+
+      updateChart(phChart, data.pH);
+      updateChart(ecChart, data.EC);
+      updateChart(tempChart, data.T);
+    });
+  </script>
+</body>
