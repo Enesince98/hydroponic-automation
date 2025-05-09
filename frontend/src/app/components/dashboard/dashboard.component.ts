@@ -4,7 +4,7 @@ import { PumpControlComponent } from '../pump-control/pump-control.component';
 import { MatToolbar } from '@angular/material/toolbar';
 import { ChartsComponent } from '../charts/charts.component';
 import { BottomNavbarComponent } from '../bottom-navbar/bottom-navbar.component';
-import { PumpStatusData, SensorData, SensorRangeData, SocketService } from '../../services/socket.service';
+import { SensorData, SocketService } from '../../services/socket.service';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
@@ -29,7 +29,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     hum: 0,
   }
 
-  pumpStatusData: { [key: string]: string | boolean | number } = {
+  pumpStatusData: Record<string, string | boolean | number> = {
     phUpPump: false,
     phDownPump: false,
     ecPump: false,
@@ -37,7 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   pumpNames = ['phUpPump', 'phDownPump', 'ecPump'];
 
-  pumpLabels: { [key: string]: string } = {
+  pumpLabels: Record<string, string> = {
     phUpPump: "Base Pump",
     phDownPump: "Acid Pump",
     ecPump: "Nutrient Pump"

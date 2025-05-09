@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PumpStatusData, SocketService } from '../../services/socket.service';
 import { MatFormField, MatInputModule, MatLabel, } from '@angular/material/input';
-import { MatCard, MatCardContent, MatCardHeader, MatCardModule, MatCardTitle } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,12 +22,12 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   isLoading = true;
   firstDataArrived = false;
   controlPumpStatusData = {} as PumpStatusData;
-  pumpStatusData: { [key: string]: number } = {
+  pumpStatusData: Record<string, number> = {
     pumpDuration: 0,
     intervalBetweenPumpRun: 0
   }
 
-  pumpStatusLabels: { [key: string]: string } = {
+  pumpStatusLabels: Record<string, string> = {
     pumpDuration: "Runtime of Pumps",
     intervalBetweenPumpRun: "Control Goods Interval",
   }
@@ -62,7 +62,7 @@ export class PumpControlComponent implements OnInit, OnDestroy {
     this.changeValue(key, delta);
   }
 
-  changeValue(key: string, delta: number, isRecursive: boolean = false): void {
+  changeValue(key: string, delta: number, isRecursive = false): void {
     if (!this.isLoading) {
       const updated = isRecursive ? this.pumpStatusData[key] + delta : delta;
       console.log(key, delta, updated);

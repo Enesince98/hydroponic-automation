@@ -93,7 +93,7 @@ export class SocketService {
     });
   }
 
-  controlPump(pumps: { [key: string]: string | boolean | number }): void {
+  controlPump(pumps: Record<string, string | boolean | number>): void {
     console.log(`Sending command: ${JSON.stringify(pumps)}`);
     this.socket.emit('pumpControl', pumps); // Send to server via Socket.io
   }

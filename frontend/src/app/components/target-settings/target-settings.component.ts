@@ -10,14 +10,6 @@ import { MatIcon } from '@angular/material/icon';
 import { LoaderComponent } from '../loader/loader.component';
 import isEqual from 'lodash/isEqual';
 import { Subject, takeUntil } from 'rxjs';
-enum Values {
-  targetPh = "Target PH",
-  targetEc = "Target EC",
-  minPh = "Min PH",
-  maxPh = "Max PH",
-  minEc = "Min EC",
-  maxEc = "Max EC",
-}
 
 @Component({
   selector: 'app-target-settings',
@@ -30,17 +22,17 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
   isLoading = true;
   firstDataArrived = false;
   controlSensorRangeData = {} as SensorRangeData;
-  values: { [key: string]: { min: number; max: number; target: number } } = {
+  values: Record<string, { min: number; max: number; target: number }> = {
     Ph: { min: 0, max: 0, target: 0 },
     Ec: { min: 0, max: 0, target: 0 },
   }
 
-  valueLevels: { [key: string]: string } = {
+  valueLevels: Record<string, string> = {
     min: "Minimum",
     max: "Maximum",
     target: "Target",
   }
-  valueLabels: { [key: string]: string } = {
+  valueLabels: Record<string, string> = {
     Ph: "PH",
     Ec: "EC",
   }
@@ -92,7 +84,7 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
   }
 
 
-  changeValue(key: string, field: string, delta: number, isRecursive: boolean = false): void {
+  changeValue(key: string, field: string, delta: number, isRecursive = false): void {
     if (!this.isLoading) {
       const fieldAsserted = field as 'min' | 'max' | 'target'
       const updated = this.round(isRecursive ? this.values[key][fieldAsserted] + delta : delta);
