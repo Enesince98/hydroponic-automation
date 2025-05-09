@@ -37,7 +37,8 @@ export class SocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io('http://192.168.1.105:3000'); // adjust if needed
+    // this.socket = io('http://192.168.1.105:3000'); // adjust if needed
+    this.socket = io('http://localhost:3000'); // if no internet connectoin
   }
 
   onSensorData(): Observable<SensorData> {

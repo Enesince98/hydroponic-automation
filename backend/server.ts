@@ -9,7 +9,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ['http://192.168.1.105:4200', 'http://localhost:4200'],  // Allow requests from Angular frontend
+    origin: "*", //only when no internet connection
+    // origin: ['http://192.168.1.155:4200', 'http://localhost:4200'], // Allow requests from Angular frontend
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
   }
@@ -49,7 +50,7 @@ interface SensorRangeData extends SerialData {
 }
 
 // Setup serial port
-const port = new SerialPort({ path: 'COM5', baudRate: 9600 });
+const port = new SerialPort({ path: '/dev/ttyUSB0', baudRate: 9600 });
 const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));
 
 // Handle sensor data
@@ -117,11 +118,12 @@ io.on('connection', (socket) => {
 app.use(express.static('public'));
 
 server.listen(3000, "0.0.0.0", () => {
-  console.log('Server running on http://192.168.1.105:3000');
+  console.log('Server running on http://192.168.1.155:3000');
 });
 
 app.use(cors({
-  origin: ['http://192.168.1.105:4200', 'http://localhost:4200'],  // Allow requests only from your Angular app
+  origin: "*", //only when no internet connection
+  //origin: ['http://192.168.1.155:4200', 'http://localhost:4200'], // Allow requests from Angular frontend
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type']
-}));
+}));105
