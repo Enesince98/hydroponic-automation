@@ -102,7 +102,6 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
         const keyFieldPair = field + key;
         this.socketService.setTargets(keyFieldPair, updated);
         this.isLoading = true;
-        console.log("AAAA");
         setTimeout(() => { this.isLoading = false; }, 2000);
       }
     }
@@ -127,6 +126,5 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    console.log("destroyed");
   }
 }

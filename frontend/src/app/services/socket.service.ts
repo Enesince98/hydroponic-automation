@@ -22,6 +22,18 @@ export interface SensorRangeData {
   targetPh: number,
 }
 
+export interface WaterPumpData {
+  type: string,
+  onTime: number,
+  offTime: number,
+}
+
+export interface LightSourceData {
+  type: string,
+  onTime: number,
+  offTime: number,
+}
+
 
 export interface PumpStatusData {
   phUpPump: boolean,
@@ -29,6 +41,18 @@ export interface PumpStatusData {
   ecPump: boolean,
   intervalBetweenPumpRun: number,
   pumpDuration: number,
+  type: string,
+}
+
+export interface ReceivedPhCalibrationData {
+  phVoltage: number,
+  phValue: number,
+  type: string,
+}
+
+export interface SetPhCalibrationData {
+  phSlope: number,
+  phOffset: number,
   type: string,
 }
 
@@ -88,6 +112,53 @@ export class SocketService {
     });
   }
 
+  onWaterPumpData(): Observable<WaterPumpData> {
+    return new Observable(observer => {
+      const handler = (data: WaterPumpData) => {
+        console.log(data);
+        observer.next(data);
+      };
+
+      this.socket.on('waterPumpData', handler);
+
+      return () => {
+        this.socket.off('waterPumpData', handler);
+      };
+    });
+  }
+
+
+  onLightSourceData(): Observable<LightSourceData> {
+    return new Observable(observer => {
+      const handler = (data: LightSourceData) => {
+        console.log(data);
+        observer.next(data);
+      };
+
+      this.socket.on('lightSourceData', handler);
+
+      return () => {
+        this.socket.off('lightSourceData', handler);
+      };
+    });
+  }
+
+  onPhCalibrationData(): Observable<ReceivedPhCalibrationData> {
+    return new Observable(observer => {
+      const handler = (data: ReceivedPhCalibrationData) => {
+        console.log(data);
+        observer.next(data);
+      };
+
+      this.socket.on('phCalibrationData', handler);
+
+      // Cleanup function that runs on unsubscribe
+      return () => {
+        this.socket.off('phCalibrationData', handler);
+      };
+    });
+  }
+
   onHistory(): Observable<any> {
     return new Observable(observer => {
       this.socket.on('historyData', (data) => { console.log(data); return observer.next(data) });
@@ -104,9 +175,28 @@ export class SocketService {
     this.socket.emit('setTargets', { [key]: value, type: "setSensorRangeData" });
   }
 
+  setWaterPumpTimings(waterPumpData: WaterPumpData) {
+    console.log(waterPumpData);
+    this.socket.emit('setTargets', waterPumpData);
+  }
+
+  setLightSourceTimings(lightSourceData: LightSourceData) {
+    console.log(lightSourceData);
+    this.socket.emit('setTargets', lightSourceData);
+  }
+
   setPumpOptions(key: string, value: number) {
     console.log({ [key]: value, type: "setPumpOptions" });
     this.socket.emit('setTargets', { [key]: value, type: "setPumpOptions" });
+  }
+
+  setPhCalibration(phCalibrationData: SetPhCalibrationData) {
+    console.log(phCalibrationData);
+    this.socket.emit('phValueCalibration', { ...phCalibrationData, type: "setPhCalibration" });
+  }
+
+  startPhCalibration() {
+    this.socket.emit('startPhCalibration');
   }
 
 

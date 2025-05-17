@@ -65,7 +65,6 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   changeValue(key: string, delta: number, isRecursive = false): void {
     if (!this.isLoading) {
       const updated = isRecursive ? this.pumpStatusData[key] + delta : delta;
-      console.log(key, delta, updated);
       this.pumpStatusData[key] = updated;
       if (key === "pumpDuration") this.controlPumpStatusData.pumpDuration = updated * 1000;
       if (key === "intervalBetweenPumpRun") this.controlPumpStatusData.intervalBetweenPumpRun = updated * 1000;
@@ -84,7 +83,6 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    console.log("destroyed");
   }
 
   // togglePump(key: string): void {

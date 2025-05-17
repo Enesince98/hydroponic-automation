@@ -1,0 +1,38 @@
+<mat-card class="target-settings-card">
+  <mat-card-header>
+    <mat-card-title>🔧 Water Pump Settings</mat-card-title>
+  </mat-card-header>
+  <ng-container *ngIf="isLoading; else waterPumpSettings">
+    <app-loader></app-loader>
+  </ng-container>
+<ng-template #waterPumpSettings>
+<div class="automation-wrapper">
+  <div class="limits-section" >
+    <h3>Water Pump Timings</h3>
+    <div class="limit-row">
+      <span class="limit-label">Water Pump On Time</span>
+      <div class="limit-controls">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(true, -1)">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <input matInput type="number" class="value-display" [(ngModel)]="values.onTime"/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(true, 1)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+		  <div class="limit-row">
+      <span class="limit-label">Water Pump Off Time</span>
+      <div class="limit-controls">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(false, -1)">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <input matInput type="number" class="value-display" [(ngModel)]="values.offTime"/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(false, 1)">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</ng-template>

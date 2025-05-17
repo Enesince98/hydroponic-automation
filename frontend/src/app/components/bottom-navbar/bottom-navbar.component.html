@@ -12,7 +12,19 @@
       </a>
       <a routerLink="/settings" routerLinkActive="active-link" (click)="drawer.toggle()">
         <mat-icon>settings</mat-icon>
-        <span class = "sidebar-item-span">Settings</span>
+        <span class = "sidebar-item-span">Target Settings</span>
+      </a>
+      <a routerLink="/calibration" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>straighten</mat-icon>
+        <span class = "sidebar-item-span">Calibration</span>
+      </a>
+      <a routerLink="/light" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>lightbulb</mat-icon>
+        <span class = "sidebar-item-span">Lightning</span>
+      </a>
+      <a routerLink="/water" routerLinkActive="active-link" (click)="drawer.toggle()">
+        <mat-icon>water_drop</mat-icon>
+        <span class = "sidebar-item-span">Water Pump</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>

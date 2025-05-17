@@ -19,14 +19,10 @@ mat-toolbar {
   justify-content: space-between;
 }
 
-.hide-on-large {
-  display: none;
-}
+
 
 @media (max-width: 768px) {
-  .hide-on-large {
-    display: inline-flex;
-  }
+
 
   .app-sidenav {
     width: calc(100% - 60px);

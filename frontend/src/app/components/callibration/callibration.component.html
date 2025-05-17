@@ -1,0 +1,9 @@
+<div class="calibration-container">
+  <h2>Güncel pH Değeri</h2>
+  <div class="ph-value">{{ receivedPhCalibrationData.phValue | number: '1.2-2' }}</div>
+	<div class="ph-voltage">{{ receivedPhCalibrationData.phVoltage | number: '1.2-2' }}</div>
+  <div class="calibration-options">
+    <button mat-stroked-button color="accent" (click)="startCalibration(4.01)">4.01</button>
+    <button mat-stroked-button color="accent" (click)="startCalibration(6.86)">6.86</button>
+  </div>
+</div>
