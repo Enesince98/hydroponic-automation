@@ -1,0 +1,41 @@
+{
+  "phLimits": { "min": 5.5, "max": 6.5, "target": 6, "delta": 0.3 },
+  "ecLimits": { "min": 1.2, "max": 1.8, "target": 1.5, "delta": 0.2 },
+  "phCalibration": { "slope": -23.4946, "intercept": 37.8842 },
+  "phUpPump": {
+    "lastRun": 0,
+    "duration": 5000,
+    "isRunning": false,
+    "isNegative": false,
+    "totalRunCount": 0
+  },
+  "phDownPump": {
+    "lastRun": 4114,
+    "duration": 5000,
+    "isRunning": false,
+    "isNegative": true,
+    "totalRunCount": 1
+  },
+  "ecPump": {
+    "lastRun": 4114,
+    "duration": 5000,
+    "isRunning": false,
+    "isNegative": false,
+    "totalRunCount": 1
+  },
+  "waterPump": {
+    "lastToggle": 0,
+    "onTime": 10000,
+    "offTime": 60000,
+    "state": false,
+    "totalRunCount": 0
+  },
+  "lightSource": {
+    "lastToggle": 0,
+    "onTime": 57600000,
+    "offTime": 28800000,
+    "state": false,
+    "totalRunCount": 0
+  },
+  "sensors": { "ec": 1.285435, "ph": 6.404692 }
+}

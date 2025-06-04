@@ -1,203 +1,110 @@
-// src/app/services/socket.service.ts
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import { Calibration, HydroponicData, Limits, NutrientPump, RelayDevice, SensorData } from '../types';
 
-export interface SensorData {
-  type: string,
-  ph: number,
-  ec: number,
-  temp: number,
-  lux: number,
-  hum: number,
-}
-
-export interface SensorRangeData {
-  type: string,
-  maxEc: number,
-  minEc: number,
-  targetEc: number,
-  maxPh: number,
-  minPh: number,
-  targetPh: number,
-}
-
-export interface WaterPumpData {
-  type: string,
-  onTime: number,
-  offTime: number,
-}
-
-export interface LightSourceData {
-  type: string,
-  onTime: number,
-  offTime: number,
-}
-
-
-export interface PumpStatusData {
-  phUpPump: boolean,
-  phDownPump: boolean,
-  ecPump: boolean,
-  intervalBetweenPumpRun: number,
-  pumpDuration: number,
-  type: string,
-}
-
-export interface ReceivedPhCalibrationData {
-  phVoltage: number,
-  phValue: number,
-  type: string,
-}
-
-export interface SetPhCalibrationData {
-  phSlope: number,
-  phOffset: number,
-  type: string,
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class SocketService {
   private socket: Socket;
 
   constructor() {
-    // this.socket = io('http://192.168.1.105:3000'); // adjust if needed
-    this.socket = io('http://localhost:3000'); // if no internet connectoin
+    this.socket = io('http://localhost:3000'); // Backend adresin buraya
   }
 
-  onSensorData(): Observable<SensorData> {
-    return new Observable(observer => {
-      const handler = (data: SensorData) => {
-        console.log(data);
-        observer.next(data);
-      };
+  // ----- VERİ GÖNDERİCİLER -----
+  sendPhLimits(data: Limits) {
+    this.socket.emit('updatePhLimits', data);
+  }
 
-      this.socket.on('sensorData', handler);
+  sendEcLimits(data: Limits) {
+    this.socket.emit('updateEcLimits', data);
+  }
 
-      // Cleanup function that runs on unsubscribe
-      return () => {
-        this.socket.off('sensorData', handler);
-      };
+  sendPhUpPumpDuration(duration: number) {
+    this.socket.emit('updatephUpPump', duration);
+  }
+
+  sendPhDownPumpDuration(duration: number) {
+    this.socket.emit('updatephDownPump', duration);
+  }
+
+  sendEcPumpDuration(duration: number) {
+    this.socket.emit('updateecPump', duration);
+  }
+
+  sendWaterPumpTimes(data: { onTime: number; offTime: number }) {
+    this.socket.emit('updatewaterPump', data);
+  }
+
+  sendLightSourceTimes(data: { onTime: number; offTime: number }): Observable<any> {
+    return new Observable<any>((observer) => { 
+      this.socket.emit('updatelightSource', data, (response: any) => {
+        observer.next(response);   // Sunucudan gelen yanıtı döndür
+        observer.complete();       // Observable tamamlandı
+    });
+  });
+  }
+
+  // ----- VERİ ALICILAR -----
+  onPhLimits(): Observable<Limits> {
+    return new Observable((observer) => {
+      this.socket.on('phLimits', (data: Limits) => observer.next(data));
     });
   }
 
-  onPumpStatusData(): Observable<PumpStatusData> {
-    return new Observable(observer => {
-      const handler = (data: PumpStatusData) => {
-        console.log(data);
-        observer.next(data);
-      };
-
-      this.socket.on('pumpStatusData', handler);
-
-      // Cleanup function that runs on unsubscribe
-      return () => {
-        this.socket.off('pumpStatusData', handler);
-      };
+  onEcLimits(): Observable<Limits> {
+    return new Observable((observer) => {
+      this.socket.on('ecLimits', (data: Limits) => observer.next(data));
     });
   }
 
-  onSensorRangeData(): Observable<SensorRangeData> {
-    return new Observable(observer => {
-      const handler = (data: SensorRangeData) => {
-        console.log(data);
-        observer.next(data);
-      };
-
-      this.socket.on('sensorRangeData', handler);
-
-      return () => {
-        this.socket.off('sensorRangeData', handler);
-      };
+  onPhCalibration(): Observable<Calibration> {
+    return new Observable((observer) => {
+      this.socket.on('phCalibration', (data: Calibration) => observer.next(data));
     });
   }
 
-  onWaterPumpData(): Observable<WaterPumpData> {
-    return new Observable(observer => {
-      const handler = (data: WaterPumpData) => {
-        console.log(data);
-        observer.next(data);
-      };
-
-      this.socket.on('waterPumpData', handler);
-
-      return () => {
-        this.socket.off('waterPumpData', handler);
-      };
+  onPhUpPump(): Observable<NutrientPump> {
+    return new Observable((observer) => {
+      this.socket.on('phUpPump', (data: NutrientPump) => observer.next(data));
     });
   }
 
-
-  onLightSourceData(): Observable<LightSourceData> {
-    return new Observable(observer => {
-      const handler = (data: LightSourceData) => {
-        console.log(data);
-        observer.next(data);
-      };
-
-      this.socket.on('lightSourceData', handler);
-
-      return () => {
-        this.socket.off('lightSourceData', handler);
-      };
+  onPhDownPump(): Observable<NutrientPump> {
+    return new Observable((observer) => {
+      this.socket.on('phDownPump', (data: NutrientPump) => observer.next(data));
     });
   }
 
-  onPhCalibrationData(): Observable<ReceivedPhCalibrationData> {
-    return new Observable(observer => {
-      const handler = (data: ReceivedPhCalibrationData) => {
-        console.log(data);
-        observer.next(data);
-      };
-
-      this.socket.on('phCalibrationData', handler);
-
-      // Cleanup function that runs on unsubscribe
-      return () => {
-        this.socket.off('phCalibrationData', handler);
-      };
+  onEcPump(): Observable<NutrientPump> {
+    return new Observable((observer) => {
+      this.socket.on('ecPump', (data: NutrientPump) => observer.next(data));
     });
   }
 
-  onHistory(): Observable<any> {
-    return new Observable(observer => {
-      this.socket.on('historyData', (data) => { console.log(data); return observer.next(data) });
+  onWaterPump(): Observable<RelayDevice> {
+    return new Observable((observer) => {
+      this.socket.on('waterPump', (data: RelayDevice) => observer.next(data));
     });
   }
 
-  controlPump(pumps: Record<string, string | boolean | number>): void {
-    console.log(`Sending command: ${JSON.stringify(pumps)}`);
-    this.socket.emit('pumpControl', pumps); // Send to server via Socket.io
+  onLightSource(): Observable<RelayDevice> {
+    return new Observable((observer) => {
+      this.socket.on('lightSource', (data: RelayDevice) => observer.next(data));
+    });
   }
 
-  setTargets(key: string, value: number) {
-    console.log({ [key]: value, type: "setSensorRangeData" });
-    this.socket.emit('setTargets', { [key]: value, type: "setSensorRangeData" });
+  onSensors(): Observable<SensorData> {
+    return new Observable((observer) => {
+      this.socket.on('sensors', (data: SensorData) => observer.next(data));
+    });
   }
 
-  setWaterPumpTimings(waterPumpData: WaterPumpData) {
-    console.log(waterPumpData);
-    this.socket.emit('setTargets', waterPumpData);
+  onDashboardData(): Observable<HydroponicData> {
+    return new Observable((observer) => {
+      this.socket.on('dashboardData', (data: HydroponicData) => observer.next(data));
+    });
   }
-
-  setLightSourceTimings(lightSourceData: LightSourceData) {
-    console.log(lightSourceData);
-    this.socket.emit('setTargets', lightSourceData);
-  }
-
-  setPumpOptions(key: string, value: number) {
-    console.log({ [key]: value, type: "setPumpOptions" });
-    this.socket.emit('setTargets', { [key]: value, type: "setPumpOptions" });
-  }
-
-  setPhCalibration(phCalibrationData: SetPhCalibrationData) {
-    console.log(phCalibrationData);
-    this.socket.emit('phValueCalibration', { ...phCalibrationData, type: "setPhCalibration" });
-  }
-
-  startPhCalibration() {
-    this.socket.emit('startPhCalibration');
-  }
-
-
 }

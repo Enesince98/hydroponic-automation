@@ -7,16 +7,31 @@
   </ng-container>
 <ng-template #targetSettings>
 <div class="automation-wrapper">
-  <div class="limits-section" *ngFor="let key of objectKeys(values)">
-    <h3>{{valueLabels[key]}}</h3>
-    <div class="limit-row" *ngFor="let item of objectKeys(valueLevels)">
-      <span class="limit-label">{{ valueLevels[item] }}</span>
+  <div class="limits-section">
+    <h3>pH</h3>
+    <div class="limit-row" *ngFor="let item of values.Ph | keyvalue">
+      <span class="limit-label">sa</span>
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(key, item, -0.1, true)">
+        <button mat-mini-fab color="warn" aria-label="Decrease">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" [placeholder]="valueLevels[item]" class="value-display" (blur)="onBlur(key, item, $event)" [ngModel]="getValue(key, item)"/>
-        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(key, item, 0.1, true)">
+        <input matInput type="number" class="value-display"/>
+        <button mat-mini-fab color="primary" aria-label="Increase">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+    <div class="limits-section">
+    <h3>EC</h3>
+    <div class="limit-row" *ngFor="let item of values.Ec | keyvalue">
+      <span class="limit-label">sa</span>
+      <div class="limit-controls">
+        <button mat-mini-fab color="warn" aria-label="Decrease">
+          <mat-icon>remove</mat-icon>
+        </button>
+        <input matInput type="number" class="value-display"/>
+        <button mat-mini-fab color="primary" aria-label="Increase">
           <mat-icon>add</mat-icon>
         </button>
       </div>

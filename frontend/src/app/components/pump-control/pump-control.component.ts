@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { PumpStatusData, SocketService } from '../../services/socket.service';
+import { SocketService } from '../../services/socket.service';
 import { MatFormField, MatInputModule, MatLabel, } from '@angular/material/input';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +9,8 @@ import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { LoaderComponent } from '../loader/loader.component';
 import isEqual from 'lodash/isEqual';
-import { Subject, takeUntil } from 'rxjs';
+import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { NutrientPump } from '../../types';
 
 @Component({
   selector: 'app-pump-control',
@@ -21,11 +22,18 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = true;
   firstDataArrived = false;
-  controlPumpStatusData = {} as PumpStatusData;
-  pumpStatusData: Record<string, number> = {
-    pumpDuration: 0,
-    intervalBetweenPumpRun: 0
-  }
+  controlPumpStatusData = {
+    phUpPump: {} as NutrientPump,
+    phDownPump: {} as NutrientPump,
+    ecPump: {} as NutrientPump,
+  };
+  pumpStatusData: NutrientPump = {
+  lastRun: 0,
+  duration: 0,
+  isRunning: false,
+  isNegative: false,
+  totalRunCount: 0,
+  };
 
   pumpStatusLabels: Record<string, string> = {
     pumpDuration: "Runtime of Pumps",
@@ -41,37 +49,34 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   //pompa çalışma süresi
 
   ngOnInit(): void {
-    this.socketService.onPumpStatusData().pipe(takeUntil(this.destroy$)).subscribe((data: PumpStatusData) => {
-      if (!this.firstDataArrived) {
-        this.pumpStatusData["pumpDuration"] = data.pumpDuration / 1000;
-        this.pumpStatusData["intervalBetweenPumpRun"] = data.intervalBetweenPumpRun / 1000;
-        this.firstDataArrived = true;
+    combineLatest(
+      [this.socketService.onPhUpPump(),
+        this.socketService.onPhDownPump(),
+        this.socketService.onEcPump(),
+      ]
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ([phUpPump, phDownPump, ecPump]) => {
+        console.log("Pump data received:", phUpPump, phDownPump, ecPump);
+        // this.pumpStatusData["pumpDuration"] = ecPump.pumpDuration / 1000;
+        // this.pumpStatusData["intervalBetweenPumpRun"] = ecPump.intervalBetweenPumpRun / 1000;
         this.isLoading = false;
-        this.controlPumpStatusData = data;
       }
-      else {
-        if (isEqual(data, this.controlPumpStatusData)) {
-          this.isLoading = false;
-        }
-      }
+      
+      
+      // (data: PumpStatusData) => {
+      // if (!this.firstDataArrived) {
+      //   this.pumpStatusData["pumpDuration"] = data.pumpDuration / 1000;
+      //   this.pumpStatusData["intervalBetweenPumpRun"] = data.intervalBetweenPumpRun / 1000;
+      //   this.firstDataArrived = true;
+      //   this.isLoading = false;
+      //   this.controlPumpStatusData = data;
+      // }
+      // else {
+      //   if (isEqual(data, this.controlPumpStatusData)) {
+      //     this.isLoading = false;
+      //   }
+      // }
     });
-  }
-
-  onBlur(key: string, data: FocusEvent) {
-    const delta = Number((data.target as HTMLInputElement).value);
-    this.changeValue(key, delta);
-  }
-
-  changeValue(key: string, delta: number, isRecursive = false): void {
-    if (!this.isLoading) {
-      const updated = isRecursive ? this.pumpStatusData[key] + delta : delta;
-      this.pumpStatusData[key] = updated;
-      if (key === "pumpDuration") this.controlPumpStatusData.pumpDuration = updated * 1000;
-      if (key === "intervalBetweenPumpRun") this.controlPumpStatusData.intervalBetweenPumpRun = updated * 1000;
-      this.socketService.setPumpOptions(key, updated * 1000);
-      this.isLoading = true;
-      setTimeout(() => { this.isLoading = false; }, 2000);
-    }
   }
 
   constructor(private socketService: SocketService) { }

@@ -7,12 +7,6 @@
 </ng-container>
 <ng-template #dashboard>
   <div class="dashboard-grid">
-    <mat-card class="sensor-card temperature">
-      <mat-card-title>Temperature</mat-card-title>
-      <mat-card-content>
-        <div class="sensor-value">{{ sensorData.temp | number:'1.1-1' }} °C</div>
-      </mat-card-content>
-    </mat-card>
 
     <mat-card class="sensor-card ph">
       <mat-card-title>pH Level</mat-card-title>
@@ -29,11 +23,11 @@
     </mat-card>
 
     <div class = "pump-status-container">
-      <mat-card class="pump-status-card" *ngFor="let pump of pumpNames">
+      <mat-card class="pump-status-card" *ngFor="let pump of pumpNames; index as i">
         <mat-card-header>
-          <mat-card-title>{{ pumpLabels[pump] }}</mat-card-title>
+          <mat-card-title>{{ pumpLabels[i] }}</mat-card-title>
         </mat-card-header>
-        <mat-card-content [ngClass]="pumpStatusData[pump] ? 'status-on' : 'status-off'">
+          <mat-card-content [ngClass]="pumpStatusData[pump].isRunning ? 'status-on' : 'status-off'">
           <div class="status-container">
             <mat-icon 
               class="status-icon"
@@ -43,7 +37,7 @@
             ></mat-icon>
             <div class="status-text">
               <div class="status-label">
-                {{ pumpStatusData[pump] ? 'ON' : 'OFF' }}
+                {{pumpStatusData[pump].isRunning ? "ON" : "OFF"}}
               </div>
             </div>
           </div>

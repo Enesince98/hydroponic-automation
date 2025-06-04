@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
-import { ReceivedPhCalibrationData, SocketService } from '../../services/socket.service';
+import { of, Subject, takeUntil } from 'rxjs';
+import { SocketService } from '../../services/socket.service';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -14,7 +14,7 @@ export class CallibrationComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = false;
   calibrationMode = false;
-  receivedPhCalibrationData: ReceivedPhCalibrationData = {
+  receivedPhCalibrationData = {
     type: "phCalibrationData",
     phValue: 0,
     phVoltage: 0,
@@ -25,7 +25,11 @@ export class CallibrationComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.socketService.onPhCalibrationData().pipe(takeUntil(this.destroy$)).subscribe((data: ReceivedPhCalibrationData) => {
+    of({
+    type: "phCalibrationData",
+    phValue: 0,
+    phVoltage: 0,
+  }).pipe(takeUntil(this.destroy$)).subscribe((data: any) => {
       console.log(data);
       this.receivedPhCalibrationData = data;
     });
@@ -40,7 +44,7 @@ export class CallibrationComponent implements OnInit, OnDestroy {
 
   startCalibration(bufferType: number) {
     console.log("clicked buffer: ", bufferType);
-    this.socketService.startPhCalibration();
+    // this.socketService.startPhCalibration();
     this.calibrationMode = true;
   }
 

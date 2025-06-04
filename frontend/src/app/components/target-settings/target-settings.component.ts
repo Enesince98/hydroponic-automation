@@ -1,6 +1,6 @@
 // src/app/components/target-settings/target-settings.component.ts
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SensorRangeData, SocketService } from '../../services/socket.service';
+import { SocketService } from '../../services/socket.service';
 import { FormsModule } from '@angular/forms';
 import { MatFormField, MatInputModule, MatLabel } from '@angular/material/input';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
@@ -9,7 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { LoaderComponent } from '../loader/loader.component';
 import isEqual from 'lodash/isEqual';
-import { Subject, takeUntil } from 'rxjs';
+import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { Limits } from '../../types';
 
 @Component({
   selector: 'app-target-settings',
@@ -21,106 +22,47 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = true;
   firstDataArrived = false;
-  controlSensorRangeData = {} as SensorRangeData;
-  values: Record<string, { min: number; max: number; target: number }> = {
-    Ph: { min: 0, max: 0, target: 0 },
-    Ec: { min: 0, max: 0, target: 0 },
-  }
-
-  valueLevels: Record<string, string> = {
-    min: "Minimum",
-    max: "Maximum",
-    target: "Target",
-  }
-  valueLabels: Record<string, string> = {
-    Ph: "PH",
-    Ec: "EC",
-  }
+  values = {
+    Ph: {} as Limits,
+    Ec: {} as Limits,
+  };
 
   constructor(private socketService: SocketService) { }
 
   ngOnInit(): void {
-    this.socketService.onSensorRangeData().pipe(takeUntil(this.destroy$)).subscribe((data: SensorRangeData) => {
-      if (!this.firstDataArrived) {
-        this.values['Ph'] = { min: data.minPh, max: data.maxPh, target: data.targetPh };
-        this.values['Ec'] = { min: data.minEc, max: data.maxEc, target: data.targetEc };
-        this.firstDataArrived = true;
-        this.controlSensorRangeData = data;
+    combineLatest([
+      this.socketService.onPhLimits(),
+      this.socketService.onEcLimits(),
+    ]).pipe(takeUntil(this.destroy$)).subscribe(
+        {
+      next: ([phLimits, ecLimits]) => {
+        this.values = {
+          Ph: {
+            min: phLimits.min,
+            max: phLimits.max,
+            target: phLimits.target,
+            delta: phLimits.delta,
+          },
+          Ec: {
+            min: ecLimits.min,
+            max: ecLimits.max,
+            target: ecLimits.target,
+            delta: ecLimits.delta,
+          }
+        };
         this.isLoading = false;
-      }
-      else {
-        if (isEqual(data, this.controlSensorRangeData)) {
-          this.isLoading = false;
-        }
-      }
-
+      },
+      error: (err) => console.error("Socket error:", err),
     });
   }
 
   onBlur(key: string, field: string, data: FocusEvent) {
     const fieldAsserted = field as 'min' | 'max' | 'target'
     const delta = Number((data.target as HTMLInputElement).value);
-    this.changeValue(key, fieldAsserted, delta);
   }
 
   round(value: number, precision = 2): number {
     return parseFloat(value.toFixed(precision));
-  }
-
-  clampTarget(key: string, field: 'min' | 'max' | 'target', delta: number): boolean {
-    const item = this.values[key];
-    switch (field) {
-      case 'min':
-        if (item.target < delta) return false;
-        break;
-      case 'max':
-        if (item.target > delta) return false;
-        break;
-      case 'target':
-        if (item.min > delta || item.max < delta) return false
-        break;
-    }
-    return true;
-  }
-
-
-  changeValue(key: string, field: string, delta: number, isRecursive = false): void {
-    if (!this.isLoading) {
-      const fieldAsserted = field as 'min' | 'max' | 'target'
-      const updated = this.round(isRecursive ? this.values[key][fieldAsserted] + delta : delta);
-      if (this.clampTarget(key, fieldAsserted, updated)) {
-        this.values[key][fieldAsserted] = updated;
-        this.controlSensorRangeData = {
-          maxEc: this.values["Ec"].max,
-          maxPh: this.values["Ph"].max,
-          minEc: this.values["Ec"].min,
-          minPh: this.values["Ph"].min,
-          targetEc: this.values["Ec"].target,
-          targetPh: this.values["Ph"].target,
-          type: "sensorRangeData"
-        }
-        const keyFieldPair = field + key;
-        this.socketService.setTargets(keyFieldPair, updated);
-        this.isLoading = true;
-        setTimeout(() => { this.isLoading = false; }, 2000);
-      }
-    }
-  }
-
-  objectKeys(obj: any): string[] {
-    return Object.keys(obj);
-  }
-
-  getValue(key: string, property: string): number | null {
-    // Check if key exists in values
-    if (!(key in this.values)) return null;
-
-    // Check if property is valid
-    const validProperties = ['min', 'max', 'target'];
-    if (!validProperties.includes(property)) return null;
-
-    // Type assertion now safe
-    return this.values[key][property as 'min' | 'max' | 'target'];
   }
 
   ngOnDestroy() {

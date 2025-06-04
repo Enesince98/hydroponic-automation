@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SocketService, WaterPumpData } from '../../services/socket.service';
+import { SocketService } from '../../services/socket.service';
 import { Subject, takeUntil } from 'rxjs';
 import { isEqual, omit } from 'lodash';
 import { CommonModule } from '@angular/common';
@@ -9,6 +9,7 @@ import { MatCardContent, MatCardTitle, MatCardHeader, MatCard } from '@angular/m
 import { MatIcon } from '@angular/material/icon';
 import { MatLabel, MatFormField, MatInputModule } from '@angular/material/input';
 import { LoaderComponent } from '../loader/loader.component';
+import { RelayDevice } from '../../types';
 
 @Component({
   selector: 'app-water-pump-control',
@@ -20,11 +21,13 @@ export class WaterPumpControlComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = true;
   firstDataArrived = false;
-  controlWaterPumpData = {} as WaterPumpData;
-  values: WaterPumpData = {
-    type: 'setWaterPumpTimings',
+  controlWaterPumpData = {} as RelayDevice;
+  values: RelayDevice = {
+    lastToggle: 0,
     onTime: 0,
     offTime: 0,
+    state: false,
+    totalRunCount: 0,
   }
 
   constructor(
@@ -32,7 +35,8 @@ export class WaterPumpControlComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.socketService.onWaterPumpData().pipe(takeUntil(this.destroy$)).subscribe((data: WaterPumpData) => {
+    this.socketService.onWaterPump().pipe(takeUntil(this.destroy$)).subscribe((data: RelayDevice) => {
+      console.log("Water Pump data received:", data);
       if (!this.firstDataArrived) {
         this.values.offTime = data.offTime;
         this.values.onTime = data.onTime;
@@ -54,7 +58,7 @@ export class WaterPumpControlComponent implements OnInit, OnDestroy {
     if (isOnTime) this.values.onTime = this.values.onTime += value;
     else this.values.offTime = this.values.offTime += value;
 
-    this.socketService.setWaterPumpTimings(this.values);
+    this.socketService.sendWaterPumpTimes(this.values);
     this.isLoading = true;
   }
 

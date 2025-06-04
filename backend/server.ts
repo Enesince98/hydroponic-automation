@@ -1,151 +1,102 @@
-const express = require('express');
-const http = require('http');
-const { SerialPort } = require('serialport');
-const { ReadlineParser } = require('@serialport/parser-readline');
-const socketIo = require('socket.io');
-const cors = require('cors');
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*", //only when no internet connection
-    // origin: ['http://192.168.1.155:4200', 'http://localhost:4200'], // Allow requests from Angular frontend
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
-  }
+import { SerialPort } from 'serialport';
+import { ReadlineParser } from '@serialport/parser-readline';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { HydroponicData, EmitFields, Limits} from './types';
+// Seri portu tanımlamak için kullanılan binding
+const httpServer = createServer();
+const io = new Server(httpServer, {
+  cors: { origin: '*' }, // frontend başka portta ise bu önemli
 });
 
-enum DataTypes {
-  SENSOR_DATA = "sensorData",
-  PUMP_STATUS_DATA = "pumpStatusData",
-  SENSOR_RANGE_DATA = "sensorRangeData",
-  PH_CALIBRATION_DATA = "phCalibrationData",
-  WATER_PUMP_DATA = "waterPumpData",
-  LIGHT_SOURCE_DATA = "lightSourceData",
-}
+httpServer.listen(3000, () => {
+  console.log('Socket.IO sunucusu 3000 portunda çalışıyor.');
+});
 
-interface SerialData {
-  type: string,
-}
+// Seri port ayarları
+const port = new SerialPort({
+  path: '/dev/cu.usbserial-11420', // Windows'ta "COM3" gibi olabilir
+  baudRate: 9600,
+});
 
-interface SensorData extends SerialData {
-  ph: number,
-  ec: number,
-  temp: number,
-  hum: number,
-  lux: number
-}
-
-interface PumpStatusData extends SerialData {
-  ecPump: boolean,
-  phUpPump: boolean,
-  phDownPump: boolean,
-}
-
-interface SensorRangeData extends SerialData {
-  maxEc: number,
-  minEc: number,
-  targetEc: number,
-  maxPh: number,
-  minPh: number,
-  targetPh: number,
-}
-
-interface PhCalibrationData extends SerialData {
-  phVoltage: number,
-  phValue: number,
-}
-
-interface WaterPumpData extends SerialData {
-  offTime: number,
-  onTime: number,
-}
-
-interface LightSourceData extends SerialData {
-  offTime: number,
-  onTime: number,
-}
-
-const path = 'COM5';
-// const path = '/dev/ttyUSB0';
-
-// Setup serial port
-const port = new SerialPort({ path, baudRate: 9600 });
+// Satır sonu karakterine göre ayrıştırıcı (JSON her satırda gönderiliyorsa)
 const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));
 
-// Handle sensor data
-parser.on('data', (line) => {
-  // console.log(line);
-  const data: SensorData | SensorRangeData | PumpStatusData = JSON.parse(line);
-  switch (data.type) {
-    case DataTypes.PUMP_STATUS_DATA:
-      io.emit(DataTypes.PUMP_STATUS_DATA, data);
-      break;
-    case DataTypes.SENSOR_DATA:
-      io.emit(DataTypes.SENSOR_DATA, data);
-      break;
-    case DataTypes.SENSOR_RANGE_DATA:
-      io.emit(DataTypes.SENSOR_RANGE_DATA, data);
-      break;
-    case DataTypes.PH_CALIBRATION_DATA:
-      io.emit(DataTypes.PH_CALIBRATION_DATA, data);
-      break;
-    case DataTypes.WATER_PUMP_DATA:
-      io.emit(DataTypes.WATER_PUMP_DATA, data);
-      break;
-    case DataTypes.LIGHT_SOURCE_DATA:
-      io.emit(DataTypes.LIGHT_SOURCE_DATA, data);
-      break;
-    default:
-      // console.log(line);
-      break;
-  }
-});
+// Veri alındığında işleyici
+parser.on('data', (line: string) => {
+  try {
+    const data: HydroponicData = JSON.parse(line);
 
-// Handle pump control commands from the frontend
-io.on('connection', (socket) => {
-  // Listen for pump control commands
-
-  socket.emit('data', { type: 'status', message: 'Connected to server' });
-
-  // Listen for pH/EC target changes from the frontend
-  socket.on('setTargets', (targets) => socketSendData(targets));
-
-  socket.on('phValueCalibration', (calibration_values) => socketSendData(calibration_values))
-
-  socket.on('startPhCalibration', () => socketSendData({ type: "startPhCalibration" }))
-
-});
-
-function socketSendData(data: any) {
-  {
-    console.log(`Received new data: ${JSON.stringify(data)}`);
-
-    // Send the new target values to Arduino
-
-    port.write(`${JSON.stringify(data)}\n`, (err) => {
-      if (err) {
-        console.log('Error sending data to Arduino:', err);
-      } else {
-        console.log('Sent data to Arduino');
-      }
-    });
-    port.drain(() => {
-      console.log('Veri tamamen gönderildi.');
-    });
+    for (const key of EmitFields) {
+  const value = data[key];
+  if (value !== undefined) {
+    io.emit(key, value);
+    console.log(`Gönderilen veri: ${key}`, value);
   }
 }
 
-app.use(express.static('public'));
-
-server.listen(3000, "0.0.0.0", () => {
-  console.log('Server running on http://192.168.1.155:3000');
+  } catch (err) {
+    console.error('JSON parse hatası:', err);
+  }
 });
 
-app.use(cors({
-  origin: "*", //only when no internet connection
-  //origin: ['http://192.168.1.155:4200', 'http://localhost:4200'], // Allow requests from Angular frontend
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-})); 105
+port.on('open', () => {
+  console.log('Seri port bağlantısı açıldı.');
+});
+
+port.on('error', (err) => {
+  console.error('Seri port hatası:', err);
+});
+
+io.on('connection', (socket) => {
+  console.log(`İstemci bağlandı: ${socket.id}`);
+
+  // 1. pH limitlerini güncelle
+  socket.on('updatePhLimits', (limits: Limits) => {
+    if (validateLimits(limits)) {
+      port.write(JSON.stringify({ phLimits: limits }) + '\n');
+      console.log('pH limitleri gönderildi:', limits);
+    }
+  });
+
+  // 2. EC limitleri
+  socket.on('updateEcLimits', (limits: Limits) => {
+    if (validateLimits(limits)) {
+      port.write(JSON.stringify({ ecLimits: limits }) + '\n');
+      console.log('EC limitleri gönderildi:', limits);
+    }
+  });
+
+  // 3. pH up/down/ec pompaları duration
+  ['phUpPump', 'phDownPump', 'ecPump'].forEach((pumpKey) => {
+    socket.on(`update${pumpKey}`, (duration: number) => {
+      if (typeof duration === 'number' && duration > 0) {
+        port.write(JSON.stringify({ [pumpKey]: { duration } }) + '\n');
+        console.log(`${pumpKey} süresi gönderildi: ${duration}`);
+      }
+    });
+  });
+
+  // 4. Water/light onTime-offTime
+  ['waterPump', 'lightSource'].forEach((deviceKey) => {
+    socket.on(`update${deviceKey}`, (payload: { onTime: number; offTime: number }, callback) => {
+      if (
+        typeof payload?.onTime === 'number' &&
+        typeof payload?.offTime === 'number'
+      ) {
+        port.write(JSON.stringify({ [deviceKey]: payload }) + '\n');
+        console.log(`${deviceKey} zamanları gönderildi:`, payload);
+        callback({ status: 'ok', receivedAt: Date.now() });
+      }
+    });
+  });
+});
+
+function validateLimits(obj: any): obj is Limits {
+  return (
+    typeof obj.min === 'number' &&
+    typeof obj.max === 'number' &&
+    typeof obj.target === 'number' &&
+    typeof obj.delta === 'number'
+  );
+}

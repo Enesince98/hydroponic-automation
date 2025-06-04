@@ -11,11 +11,11 @@
     <h3>{{pumpStatusLabels[key]}}</h3>
     <div class="limit-row">
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(key, -1, true)">
+        <button mat-mini-fab color="warn" aria-label="Decrease">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" [placeholder]="pumpStatusLabels[key]" class="value-display" (blur)="onBlur(key, $event)" [ngModel]="pumpStatusData[key]"/>
-        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(key, 1, true)">
+        <input matInput type="number" [placeholder]="pumpStatusLabels[key]" class="value-display"/>
+        <button mat-mini-fab color="primary" aria-label="Increase">
           <mat-icon>add</mat-icon>
         </button>
       </div>
