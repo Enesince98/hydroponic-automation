@@ -10,10 +10,11 @@ import { MatIcon } from '@angular/material/icon';
 import { MatLabel, MatFormField, MatInputModule } from '@angular/material/input';
 import { LoaderComponent } from '../loader/loader.component';
 import { RelayDevice } from '../../types';
+import { MillisecondsToTimePipe } from '../../utils/pipes/milliseconds-to-time.pipe';
 
 @Component({
   selector: 'app-light',
-  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon],
+  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon, MillisecondsToTimePipe],
   templateUrl: './light.component.html',
   styleUrl: './light.component.scss'
 })
@@ -38,24 +39,17 @@ export class LightComponent implements OnInit, OnDestroy {
 
   getLightSource() {
     this.socketService.onLightSource().pipe(first()).subscribe((data: RelayDevice) => {
-        console.log("Light Source data received:", data);
-        this.lightSource = data;
-        this.isLoading = false;
+      console.log("Light Source data received:", data);
+      this.lightSource = data;
+      this.isLoading = false;
     });
   }
 
-  get onTimeMinutes(): number {
+  onTimeMinutes(): number {
     return this.lightSource.onTime / 1000 / 60;
   }
-  get offTimeMinutes(): number {
+  offTimeMinutes(): number {
     return this.lightSource.offTime / 1000 / 60;
-  }
-
-  set onTimeMinutes(value: number) {
-    this.lightSource.onTime = value * 1000 * 60;
-  }
-  set offTimeMinutes(value: number) {
-    this.lightSource.offTime = value * 1000 * 60;
   }
 
   showTimeInHours(timeInSeconds: number): number {
@@ -90,7 +84,8 @@ export class LightComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error("Error updating Light Source settings:", error);
         this.isLoading = false;
-      }});
+      }
+    });
   }
 
   ngOnDestroy() {

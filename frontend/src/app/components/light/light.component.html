@@ -15,11 +15,11 @@
         <button mat-mini-fab color="warn" aria-label="Decrease" (click) = "changeOnTime(false)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display" step = "10" [(ngModel)] = "onTimeMinutes" disabled/>
+        <input matInput type="number" class="value-display" step = "10" [ngModel] = "onTimeMinutes()" disabled/>
         <button mat-mini-fab color="primary" aria-label="Increase" (click) = "changeOnTime(true)">
           <mat-icon>add</mat-icon>
         </button>
-        <span>{{showTimeInHours(lightSource.onTime) | number:'1.1-2'}} hours</span>
+        <span>{{lightSource.onTime | millisecondsToTime}}</span>
       </div>
     </div>
 		  <div class="limit-row">
@@ -28,11 +28,11 @@
         <button mat-mini-fab color="warn" aria-label="Decrease" (click) = "changeOffTime(false)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display" step = "10" [(ngModel)] = "offTimeMinutes" disabled/>
+        <input matInput type="number" class="value-display" step = "10" [ngModel] = "offTimeMinutes()" disabled/>
         <button mat-mini-fab color="primary" aria-label="Increase" (click) = "changeOffTime(true)">
           <mat-icon>add</mat-icon>
         </button>
-        <span>{{showTimeInHours(lightSource.offTime) | number:'1.1-2'}} hours</span>
+        <span>{{lightSource.offTime | millisecondsToTime}}</span>
       </div>
     </div>
     <div class = "save-button-container">

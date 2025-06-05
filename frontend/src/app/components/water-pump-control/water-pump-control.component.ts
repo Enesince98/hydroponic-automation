@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SocketService } from '../../services/socket.service';
-import { Subject, takeUntil } from 'rxjs';
+import { first, Subject, takeUntil } from 'rxjs';
 import { isEqual, omit } from 'lodash';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,56 +10,82 @@ import { MatIcon } from '@angular/material/icon';
 import { MatLabel, MatFormField, MatInputModule } from '@angular/material/input';
 import { LoaderComponent } from '../loader/loader.component';
 import { RelayDevice } from '../../types';
+import { MillisecondsToTimePipe } from '../../utils/pipes/milliseconds-to-time.pipe';
 
 @Component({
   selector: 'app-water-pump-control',
-  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon],
+  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon, MillisecondsToTimePipe],
   templateUrl: './water-pump-control.component.html',
   styleUrl: './water-pump-control.component.scss'
 })
 export class WaterPumpControlComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = true;
-  firstDataArrived = false;
-  controlWaterPumpData = {} as RelayDevice;
-  values: RelayDevice = {
+  waterPump: RelayDevice = {
     lastToggle: 0,
     onTime: 0,
     offTime: 0,
     state: false,
-    totalRunCount: 0,
-  }
+    totalRunCount: 0
+  };
 
   constructor(
     private readonly socketService: SocketService,
   ) { }
 
   ngOnInit(): void {
-    this.socketService.onWaterPump().pipe(takeUntil(this.destroy$)).subscribe((data: RelayDevice) => {
-      console.log("Water Pump data received:", data);
-      if (!this.firstDataArrived) {
-        this.values.offTime = data.offTime;
-        this.values.onTime = data.onTime;
-        this.firstDataArrived = true;
-        this.controlWaterPumpData = data;
-        this.isLoading = false;
-      }
-      else {
-        console.log(omit(data, "type"), omit(this.values, "type"));
-        if (isEqual(omit(data, "type"), omit(this.values, "type"))) {
-          this.isLoading = false;
-        }
-      }
+    this.getwaterPump();
+  }
 
+  getwaterPump() {
+    this.socketService.onWaterPump().pipe(first()).subscribe((data: RelayDevice) => {
+      console.log("Water Pump data received:", data);
+      this.waterPump = data;
+      this.isLoading = false;
     });
   }
 
-  changeValue(isOnTime: boolean, value: number) {
-    if (isOnTime) this.values.onTime = this.values.onTime += value;
-    else this.values.offTime = this.values.offTime += value;
+  onTimeSeconds(): number {
+    return this.waterPump.onTime / 1000;
+  }
+  offTimeSeconds(): number {
+    return this.waterPump.offTime / 1000;
+  }
 
-    this.socketService.sendWaterPumpTimes(this.values);
+  showTimeInHours(timeInSeconds: number): number {
+    return timeInSeconds / 1000 / 60;
+  }
+
+  changeOffTime(direction: boolean) {
+    if (direction) {
+      this.waterPump.offTime += 1000 * 60; // Increase by 1 minute
+    } else {
+      this.waterPump.offTime -= 1000 * 60; // Decrease by 1 minute
+    }
+
+  }
+
+  changeOnTime(direction: boolean) {
+    if (direction) {
+      this.waterPump.onTime += 1000 // Increase by 1 second
+    } else {
+      this.waterPump.onTime -= 1000 // Decrease by 1 second
+    }
+
+  }
+
+  updatewaterPumpSettings() {
     this.isLoading = true;
+    this.socketService.sendWaterPumpTimes(this.waterPump).pipe(first()).subscribe({
+      next: (response) => {
+        console.log("Water Pump settings updated:", response);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error("Error updating Light Source settings:", error);
+        this.isLoading = false;
+      }
+    });
   }
 
   ngOnDestroy() {

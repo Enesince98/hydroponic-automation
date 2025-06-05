@@ -28,11 +28,11 @@ export class PumpControlComponent implements OnInit, OnDestroy {
     ecPump: {} as NutrientPump,
   };
   pumpStatusData: NutrientPump = {
-  lastRun: 0,
-  duration: 0,
-  isRunning: false,
-  isNegative: false,
-  totalRunCount: 0,
+    lastRun: 0,
+    duration: 0,
+    isRunning: false,
+    isNegative: false,
+    totalRunCount: 0,
   };
 
   pumpStatusLabels: Record<string, string> = {
@@ -51,8 +51,8 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     combineLatest(
       [this.socketService.onPhUpPump(),
-        this.socketService.onPhDownPump(),
-        this.socketService.onEcPump(),
+      this.socketService.onPhDownPump(),
+      this.socketService.onEcPump(),
       ]
     ).pipe(takeUntil(this.destroy$)).subscribe({
       next: ([phUpPump, phDownPump, ecPump]) => {
@@ -61,8 +61,8 @@ export class PumpControlComponent implements OnInit, OnDestroy {
         // this.pumpStatusData["intervalBetweenPumpRun"] = ecPump.intervalBetweenPumpRun / 1000;
         this.isLoading = false;
       }
-      
-      
+
+
       // (data: PumpStatusData) => {
       // if (!this.firstDataArrived) {
       //   this.pumpStatusData["pumpDuration"] = data.pumpDuration / 1000;

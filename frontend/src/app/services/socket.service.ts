@@ -10,44 +10,48 @@ export class SocketService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io('http://localhost:3000'); // Backend adresin buraya
+    this.socket = io('http://localhost:3000');
   }
 
-  // ----- VERİ GÖNDERİCİLER -----
-  sendPhLimits(data: Limits) {
-    this.socket.emit('updatePhLimits', data);
+  // ----- SENDERS -----
+  sendPhLimits(limits: Limits): Observable<any> {
+    return this.sendDataToArduino(limits, "updatePhLimits");
   }
 
-  sendEcLimits(data: Limits) {
-    this.socket.emit('updateEcLimits', data);
+  sendEcLimits(limits: Limits): Observable<any> {
+    return this.sendDataToArduino(limits, "updateEcLimits");
   }
 
-  sendPhUpPumpDuration(duration: number) {
-    this.socket.emit('updatephUpPump', duration);
+  sendPhUpPumpDuration(duration: number): Observable<any> {
+    return this.sendDataToArduino(duration, "updatephUpPump");
   }
 
-  sendPhDownPumpDuration(duration: number) {
-    this.socket.emit('updatephDownPump', duration);
+  sendPhDownPumpDuration(duration: number): Observable<any> {
+    return this.sendDataToArduino(duration, "updatephDownPump");
   }
 
-  sendEcPumpDuration(duration: number) {
-    this.socket.emit('updateecPump', duration);
+  sendEcPumpDuration(duration: number): Observable<any> {
+    return this.sendDataToArduino(duration, "updateecPump");
   }
 
-  sendWaterPumpTimes(data: { onTime: number; offTime: number }) {
-    this.socket.emit('updatewaterPump', data);
+  sendWaterPumpTimes(data: { onTime: number; offTime: number }): Observable<any> {
+    return this.sendDataToArduino(data, "updatewaterPump");
   }
 
   sendLightSourceTimes(data: { onTime: number; offTime: number }): Observable<any> {
-    return new Observable<any>((observer) => { 
-      this.socket.emit('updatelightSource', data, (response: any) => {
-        observer.next(response);   // Sunucudan gelen yanıtı döndür
-        observer.complete();       // Observable tamamlandı
-    });
-  });
+    return this.sendDataToArduino(data, "updatelightSource");
   }
 
-  // ----- VERİ ALICILAR -----
+  sendDataToArduino(data: { onTime: number; offTime: number } | Limits | number, type: string): Observable<any> {
+    return new Observable<any>((observer) => {
+      this.socket.emit(type, data, (response: any) => {
+        observer.next(response);
+        observer.complete();
+      });
+    });
+  }
+
+  // ----- RECEIVERS -----
   onPhLimits(): Observable<Limits> {
     return new Observable((observer) => {
       this.socket.on('phLimits', (data: Limits) => observer.next(data));

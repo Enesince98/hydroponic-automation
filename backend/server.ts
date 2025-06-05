@@ -2,41 +2,42 @@ import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { HydroponicData, EmitFields, Limits} from './types';
-// Seri portu tanımlamak için kullanılan binding
+import { HydroponicData, EmitFields, Limits } from './types';
 const httpServer = createServer();
 const io = new Server(httpServer, {
-  cors: { origin: '*' }, // frontend başka portta ise bu önemli
+  cors: { origin: '*' },
 });
 
 httpServer.listen(3000, () => {
   console.log('Socket.IO sunucusu 3000 portunda çalışıyor.');
 });
 
-// Seri port ayarları
 const port = new SerialPort({
-  path: '/dev/cu.usbserial-11420', // Windows'ta "COM3" gibi olabilir
+  // path: '/dev/cu.usbserial-11420', // Windows "COM5"
+  path: 'COM5',
   baudRate: 9600,
 });
 
-// Satır sonu karakterine göre ayrıştırıcı (JSON her satırda gönderiliyorsa)
 const parser = port.pipe(new ReadlineParser({ delimiter: '\n' }));
 
-// Veri alındığında işleyici
 parser.on('data', (line: string) => {
-  try {
-    const data: HydroponicData = JSON.parse(line);
+  console.log(line);
+  if (line.startsWith('#OUT')) {
+    const jsonString = line.replace('#OUT', '');
+    try {
+      const data: HydroponicData = JSON.parse(jsonString);
 
-    for (const key of EmitFields) {
-  const value = data[key];
-  if (value !== undefined) {
-    io.emit(key, value);
-    console.log(`Gönderilen veri: ${key}`, value);
-  }
-}
+      for (const key of EmitFields) {
+        const value = data[key];
+        if (value !== undefined) {
+          io.emit(key, value);
+          console.log(`Gönderilen veri: ${key}`, value);
+        }
+      }
 
-  } catch (err) {
-    console.error('JSON parse hatası:', err);
+    } catch (err) {
+      console.error('JSON parse hatası:', err);
+    }
   }
 });
 
@@ -51,28 +52,25 @@ port.on('error', (err) => {
 io.on('connection', (socket) => {
   console.log(`İstemci bağlandı: ${socket.id}`);
 
-  // 1. pH limitlerini güncelle
+  // 1. pH limits
   socket.on('updatePhLimits', (limits: Limits) => {
     if (validateLimits(limits)) {
-      port.write(JSON.stringify({ phLimits: limits }) + '\n');
-      console.log('pH limitleri gönderildi:', limits);
+      port.write(JSON.stringify({ phLimits: limits }) + '\n', (err) => errorHandler(err));
     }
   });
 
-  // 2. EC limitleri
+  // 2. EC limits
   socket.on('updateEcLimits', (limits: Limits) => {
     if (validateLimits(limits)) {
-      port.write(JSON.stringify({ ecLimits: limits }) + '\n');
-      console.log('EC limitleri gönderildi:', limits);
+      port.write(JSON.stringify({ ecLimits: limits }) + '\n', (err) => errorHandler(err));
     }
   });
 
-  // 3. pH up/down/ec pompaları duration
+  // 3. pH up/down/ec pumps duration
   ['phUpPump', 'phDownPump', 'ecPump'].forEach((pumpKey) => {
     socket.on(`update${pumpKey}`, (duration: number) => {
       if (typeof duration === 'number' && duration > 0) {
-        port.write(JSON.stringify({ [pumpKey]: { duration } }) + '\n');
-        console.log(`${pumpKey} süresi gönderildi: ${duration}`);
+        port.write(JSON.stringify({ [pumpKey]: { duration } }) + '\n', (err) => errorHandler(err));
       }
     });
   });
@@ -84,13 +82,21 @@ io.on('connection', (socket) => {
         typeof payload?.onTime === 'number' &&
         typeof payload?.offTime === 'number'
       ) {
-        port.write(JSON.stringify({ [deviceKey]: payload }) + '\n');
-        console.log(`${deviceKey} zamanları gönderildi:`, payload);
+        port.write(JSON.stringify({ [deviceKey]: { onTime: payload.onTime, offTime: payload.offTime } }) + '\n', (err) => errorHandler(err));
         callback({ status: 'ok', receivedAt: Date.now() });
       }
     });
   });
 });
+
+function errorHandler(err: any) {
+  if (err) {
+    console.log('Error sending data to Arduino:', err);
+  }
+  port.drain(() => {
+    console.log('Veri tamamen gönderildi.');
+  });
+}
 
 function validateLimits(obj: any): obj is Limits {
   return (

@@ -3,17 +3,17 @@ import { SerialPort } from 'serialport';
 
 const path = '/dev/ROBOT';
 
-// 1. Port oluştur
+
 MockBinding.createPort(path, { echo: true, record: true });
 
-// 2. Portu aç
+
 const port = new SerialPort({
   path,
   baudRate: 9600,
   binding: new MockBinding() as unknown as SerialPort.Binding,
 });
 
-// 3. Fake JSON üretici
+
 function generateFakeData() {
   return {
     phLimits: { min: 5.5, max: 6.5, target: 6, delta: 0.3 },
@@ -61,7 +61,7 @@ function generateFakeData() {
   };
 }
 
-// 4. Veriyi port'a gönder
+
 setInterval(() => {
   const fakeJson = JSON.stringify(generateFakeData()) + '\n';
   const mockPort = MockBinding.getPort(path) as MockPortBinding;

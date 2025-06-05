@@ -12,11 +12,11 @@
     <div class="limit-row">
       <span class="limit-label">Water Pump On Time</span>
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(true, -1)">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click) = "changeOnTime(false)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display" [(ngModel)]="values.onTime"/>
-        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(true, 1)">
+        <input matInput type="number" class="value-display" step = "10" [ngModel] = "onTimeSeconds()" disabled/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click) = "changeOnTime(true)">
           <mat-icon>add</mat-icon>
         </button>
       </div>
@@ -24,14 +24,20 @@
 		  <div class="limit-row">
       <span class="limit-label">Water Pump Off Time</span>
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="changeValue(false, -1)">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click) = "changeOffTime(false)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display" [(ngModel)]="values.offTime"/>
-        <button mat-mini-fab color="primary" aria-label="Increase" (click)="changeValue(false, 1)">
+        <input matInput type="number" class="value-display" step = "10" [ngModel] = "offTimeSeconds()" disabled/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click) = "changeOffTime(true)">
           <mat-icon>add</mat-icon>
         </button>
+        <span>{{waterPump.offTime | millisecondsToTime}}</span>
       </div>
+    </div>
+    <div class = "save-button-container">
+      <button mat-raised-button color="primary" (click)="updatewaterPumpSettings()">
+        <mat-icon>save</mat-icon> Save Settings
+      </button>
     </div>
   </div>
 </div>

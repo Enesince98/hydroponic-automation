@@ -9,6 +9,11 @@
     justify-content: space-around;
   }
 
+  .save-button-container{
+    display: flex;
+    justify-content: right;;
+  }
+
   .limits-section {
     flex: 1;
     background: #ffffff;
@@ -40,6 +45,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        min-width: 353px;
 
         button {
           flex-shrink: 0;
