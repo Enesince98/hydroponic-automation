@@ -1,4 +1,4 @@
-<mat-card class="target-settings-card">
+<mat-card class="limits-card">
   <mat-card-header>
     <mat-card-title><mat-icon>dashboard</mat-icon> Dashboard</mat-card-title>
   </mat-card-header>
@@ -22,7 +22,33 @@
       </mat-card-content>
     </mat-card>
 
-    <div class = "pump-status-container">
+    <mat-card class="sensor-card waterTemp">
+      <mat-card-title>Water Temp</mat-card-title>
+      <mat-card-content>
+        <div class="sensor-value">{{ environmentalData.waterTemp | number:'1.2-2' }} °C</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="sensor-card environmentTemp">
+      <mat-card-title>Environmental Temp</mat-card-title>
+      <mat-card-content>
+        <div class="sensor-value">{{ environmentalData.environmentTemp | number:'1.2-2' }} °C</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="sensor-card humidity">
+      <mat-card-title>Humidity</mat-card-title>
+      <mat-card-content>
+        <div class="sensor-value">{{ environmentalData.humidity | number:'1.2-2' }} %</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="sensor-card lightLevel">
+      <mat-card-title>Light Level</mat-card-title>
+      <mat-card-content>
+        <div class="sensor-value">{{ environmentalData.lightLevel| number:'1.2-2' }} lux</div>
+      </mat-card-content>
+    </mat-card>
       <mat-card class="pump-status-card" *ngFor="let pump of pumpNames; index as i">
         <mat-card-header>
           <mat-card-title>{{ pumpLabels[i] }}</mat-card-title>
@@ -43,7 +69,6 @@
           </div>
         </mat-card-content>
       </mat-card>
-    </div>
   </div>
 </ng-template>
 

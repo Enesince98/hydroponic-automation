@@ -1,20 +1,19 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { SocketService } from '../../services/socket.service';
-import { first, Subject, takeUntil } from 'rxjs';
-import { isEqual, omit } from 'lodash';
+import { first, Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardContent, MatCardTitle, MatCardHeader, MatCard } from '@angular/material/card';
+import { MatCardTitle, MatCardHeader, MatCard } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
-import { MatLabel, MatFormField, MatInputModule } from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input';
 import { LoaderComponent } from '../loader/loader.component';
 import { RelayDevice } from '../../types';
 import { MillisecondsToTimePipe } from '../../utils/pipes/milliseconds-to-time.pipe';
 
 @Component({
   selector: 'app-light',
-  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon, MillisecondsToTimePipe],
+  imports: [LoaderComponent, CommonModule, FormsModule, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon, MillisecondsToTimePipe],
   templateUrl: './light.component.html',
   styleUrl: './light.component.scss'
 })

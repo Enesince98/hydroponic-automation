@@ -14,35 +14,25 @@ export class SocketService {
   }
 
   // ----- SENDERS -----
-  sendPhLimits(limits: Limits): Observable<any> {
-    return this.sendDataToArduino(limits, "updatePhLimits");
+  sendLimits(limits: Limits[]): Observable<any> {
+    console.log("Sending pH-EC limits to Arduino:", limits);
+    return this.sendDataToArduino(limits, "updateLimits");
   }
 
-  sendEcLimits(limits: Limits): Observable<any> {
-    return this.sendDataToArduino(limits, "updateEcLimits");
-  }
-
-  sendPhUpPumpDuration(duration: number): Observable<any> {
-    return this.sendDataToArduino(duration, "updatephUpPump");
-  }
-
-  sendPhDownPumpDuration(duration: number): Observable<any> {
-    return this.sendDataToArduino(duration, "updatephDownPump");
-  }
-
-  sendEcPumpDuration(duration: number): Observable<any> {
-    return this.sendDataToArduino(duration, "updateecPump");
+  sendNutrientPumpsDurations(data: { duration: number[] }): Observable<any> {
+    return this.sendDataToArduino(data, "updateNutrientPumps");
   }
 
   sendWaterPumpTimes(data: { onTime: number; offTime: number }): Observable<any> {
-    return this.sendDataToArduino(data, "updatewaterPump");
+    return this.sendDataToArduino(data, "updatewp");
   }
 
   sendLightSourceTimes(data: { onTime: number; offTime: number }): Observable<any> {
-    return this.sendDataToArduino(data, "updatelightSource");
+    return this.sendDataToArduino(data, "updatels");
   }
 
-  sendDataToArduino(data: { onTime: number; offTime: number } | Limits | number, type: string): Observable<any> {
+  sendDataToArduino(data: { onTime: number; offTime: number } | Limits[] | number | {duration: number[]}, type: string): Observable<any> {
+    console.log(`Sending data to Arduino with type ${type}:`, data);
     return new Observable<any>((observer) => {
       this.socket.emit(type, data, (response: any) => {
         observer.next(response);
@@ -54,55 +44,61 @@ export class SocketService {
   // ----- RECEIVERS -----
   onPhLimits(): Observable<Limits> {
     return new Observable((observer) => {
-      this.socket.on('phLimits', (data: Limits) => observer.next(data));
+      this.socket.on('pl', (data: Limits) => observer.next(data));
     });
   }
 
   onEcLimits(): Observable<Limits> {
     return new Observable((observer) => {
-      this.socket.on('ecLimits', (data: Limits) => observer.next(data));
+      this.socket.on('el', (data: Limits) => observer.next(data));
     });
   }
 
   onPhCalibration(): Observable<Calibration> {
     return new Observable((observer) => {
-      this.socket.on('phCalibration', (data: Calibration) => observer.next(data));
+      this.socket.on('pc', (data: Calibration) => observer.next(data));
     });
   }
 
   onPhUpPump(): Observable<NutrientPump> {
     return new Observable((observer) => {
-      this.socket.on('phUpPump', (data: NutrientPump) => observer.next(data));
+      this.socket.on('pup', (data: NutrientPump) => observer.next(data));
     });
   }
 
   onPhDownPump(): Observable<NutrientPump> {
     return new Observable((observer) => {
-      this.socket.on('phDownPump', (data: NutrientPump) => observer.next(data));
+      this.socket.on('pdp', (data: NutrientPump) => observer.next(data));
     });
   }
 
   onEcPump(): Observable<NutrientPump> {
     return new Observable((observer) => {
-      this.socket.on('ecPump', (data: NutrientPump) => observer.next(data));
+      this.socket.on('ep', (data: NutrientPump) => observer.next(data));
     });
   }
 
   onWaterPump(): Observable<RelayDevice> {
     return new Observable((observer) => {
-      this.socket.on('waterPump', (data: RelayDevice) => observer.next(data));
+      this.socket.on('wp', (data: RelayDevice) => observer.next(data));
     });
   }
 
   onLightSource(): Observable<RelayDevice> {
     return new Observable((observer) => {
-      this.socket.on('lightSource', (data: RelayDevice) => observer.next(data));
+      this.socket.on('ls', (data: RelayDevice) => observer.next(data));
     });
   }
 
   onSensors(): Observable<SensorData> {
     return new Observable((observer) => {
-      this.socket.on('sensors', (data: SensorData) => observer.next(data));
+      this.socket.on('s', (data: SensorData) => observer.next(data));
+    });
+  }
+
+  onEnvironmentalData(): Observable<HydroponicData['environmentalData']> {
+    return new Observable((observer) => {
+      this.socket.on('ed', (data: HydroponicData['environmentalData']) => observer.next(data));
     });
   }
 

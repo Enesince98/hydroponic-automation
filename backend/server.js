@@ -14,7 +14,7 @@ httpServer.listen(3000, function () {
 });
 var port = new serialport_1.SerialPort({
     // path: '/dev/cu.usbserial-11420', // Windows "COM5"
-    path: 'COM5',
+    path: '/dev/cu.usbserial-110',
     baudRate: 9600,
 });
 var parser = port.pipe(new parser_readline_1.ReadlineParser({ delimiter: '\n' }));
@@ -46,34 +46,41 @@ port.on('error', function (err) {
 });
 io.on('connection', function (socket) {
     console.log("\u0130stemci ba\u011Fland\u0131: ".concat(socket.id));
-    // 1. pH limits
-    socket.on('updatePhLimits', function (limits) {
-        if (validateLimits(limits)) {
-            port.write(JSON.stringify({ phLimits: limits }) + '\n', function (err) { return errorHandler(err); });
-        }
-    });
-    // 2. EC limits
-    socket.on('updateEcLimits', function (limits) {
-        if (validateLimits(limits)) {
-            port.write(JSON.stringify({ ecLimits: limits }) + '\n', function (err) { return errorHandler(err); });
+    // 1. pH-EC limits
+    socket.on('updateLimits', function (limits, callback) {
+        if (limits.every(function (i) { return validateLimits(i); })) {
+            port.write(JSON.stringify({ pl: limits[0] }) + '\n', function (err) { return errorHandler(err); });
+            setTimeout(function () {
+                port.write(JSON.stringify({ el: limits[1] }) + '\n', function (err) { return errorHandler(err); });
+            }, 1000);
+            callback({ status: 'ok', receivedAt: Date.now() });
         }
     });
     // 3. pH up/down/ec pumps duration
-    ['phUpPump', 'phDownPump', 'ecPump'].forEach(function (pumpKey) {
-        socket.on("update".concat(pumpKey), function (duration) {
-            var _a;
-            if (typeof duration === 'number' && duration > 0) {
-                port.write(JSON.stringify((_a = {}, _a[pumpKey] = { duration: duration }, _a)) + '\n', function (err) { return errorHandler(err); });
-            }
-        });
+    socket.on("updateNutrientPumps", function (payload, callback) {
+        if (!Array.isArray(payload === null || payload === void 0 ? void 0 : payload.duration) || payload.duration.length !== 3) {
+            return callback({ status: 'error', message: 'Invalid duration format' });
+        }
+        var jsonToSend = {
+            pup: { d: payload.duration[0] },
+            pdp: { d: payload.duration[1] },
+            ep: { d: payload.duration[2] }
+        };
+        port.write(JSON.stringify(jsonToSend) + '\n', function (err) { return errorHandler(err); });
+        callback({ status: 'ok', receivedAt: Date.now() });
     });
     // 4. Water/light onTime-offTime
-    ['waterPump', 'lightSource'].forEach(function (deviceKey) {
+    ['wp', 'ls'].forEach(function (deviceKey) {
         socket.on("update".concat(deviceKey), function (payload, callback) {
             var _a;
             if (typeof (payload === null || payload === void 0 ? void 0 : payload.onTime) === 'number' &&
                 typeof (payload === null || payload === void 0 ? void 0 : payload.offTime) === 'number') {
-                port.write(JSON.stringify((_a = {}, _a[deviceKey] = { onTime: payload.onTime, offTime: payload.offTime }, _a)) + '\n', function (err) { return errorHandler(err); });
+                port.write(JSON.stringify((_a = {},
+                    _a[deviceKey] = {
+                        onTime: payload.onTime,
+                        offTime: payload.offTime
+                    },
+                    _a)) + '\n', function (err) { return errorHandler(err); });
                 callback({ status: 'ok', receivedAt: Date.now() });
             }
         });

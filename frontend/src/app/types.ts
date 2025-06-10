@@ -31,6 +31,13 @@ export interface SensorData {
   ph: number;
 }
 
+export interface EnvironmentalData {
+  waterTemp: number;
+  environmentTemp: number;
+  humidity: number;
+  lightLevel: number;
+}
+
 export interface HydroponicData {
   phLimits: Limits;
   ecLimits: Limits;
@@ -41,6 +48,7 @@ export interface HydroponicData {
   waterPump: RelayDevice;
   lightSource: RelayDevice;
   sensors: SensorData;
+  environmentalData: EnvironmentalData;
 }
 
 export const EmitFields: (keyof HydroponicData)[] = [
@@ -52,4 +60,5 @@ export const EmitFields: (keyof HydroponicData)[] = [
   'ecPump',
   'waterPump',
   'lightSource',
+  'environmentalData',
 ];

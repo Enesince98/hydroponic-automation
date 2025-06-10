@@ -8,8 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { LoaderComponent } from '../loader/loader.component';
-import isEqual from 'lodash/isEqual';
-import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { combineLatest, first, Subject, takeUntil } from 'rxjs';
 import { NutrientPump } from '../../types';
 
 @Component({
@@ -22,31 +21,16 @@ export class PumpControlComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = true;
   firstDataArrived = false;
-  controlPumpStatusData = {
+  pumpStatusData = {
     phUpPump: {} as NutrientPump,
     phDownPump: {} as NutrientPump,
     ecPump: {} as NutrientPump,
-  };
-  pumpStatusData: NutrientPump = {
-    lastRun: 0,
-    duration: 0,
-    isRunning: false,
-    isNegative: false,
-    totalRunCount: 0,
   };
 
   pumpStatusLabels: Record<string, string> = {
     pumpDuration: "Runtime of Pumps",
     intervalBetweenPumpRun: "Control Goods Interval",
   }
-  // pumpLabels: { [key: string]: string } = {
-  //   phUpPump: "Base Pump",
-  //   phDownPump: "Acid Pump",
-  //   ecPump: "Nutrient Pump"
-  // }
-
-  //pompa kontrol aralığı 2-3dk
-  //pompa çalışma süresi
 
   ngOnInit(): void {
     combineLatest(
@@ -54,49 +38,61 @@ export class PumpControlComponent implements OnInit, OnDestroy {
       this.socketService.onPhDownPump(),
       this.socketService.onEcPump(),
       ]
-    ).pipe(takeUntil(this.destroy$)).subscribe({
+    ).pipe(first()).subscribe({
       next: ([phUpPump, phDownPump, ecPump]) => {
         console.log("Pump data received:", phUpPump, phDownPump, ecPump);
-        // this.pumpStatusData["pumpDuration"] = ecPump.pumpDuration / 1000;
-        // this.pumpStatusData["intervalBetweenPumpRun"] = ecPump.intervalBetweenPumpRun / 1000;
+        this.pumpStatusData.phUpPump = phUpPump;
+        this.pumpStatusData.phDownPump = phDownPump;
+        this.pumpStatusData.ecPump = ecPump;
         this.isLoading = false;
       }
+    });
+  }
 
+  incrementPumpDuration(type: string) {
+    this.pumpStatusData[type as keyof typeof this.pumpStatusData].duration += 1000;
+    console.log(`Incremented ${type} pump duration to`, this.pumpStatusData[type as keyof typeof this.pumpStatusData].duration);
+  }
 
-      // (data: PumpStatusData) => {
-      // if (!this.firstDataArrived) {
-      //   this.pumpStatusData["pumpDuration"] = data.pumpDuration / 1000;
-      //   this.pumpStatusData["intervalBetweenPumpRun"] = data.intervalBetweenPumpRun / 1000;
-      //   this.firstDataArrived = true;
-      //   this.isLoading = false;
-      //   this.controlPumpStatusData = data;
-      // }
-      // else {
-      //   if (isEqual(data, this.controlPumpStatusData)) {
-      //     this.isLoading = false;
-      //   }
-      // }
+  decreasePumpDuration(type: string) {
+    this.pumpStatusData[type as keyof typeof this.pumpStatusData].duration -= 1000;
+    console.log(`Incremented ${type} pump duration to`, this.pumpStatusData[type as keyof typeof this.pumpStatusData].duration);
+  }
+
+  onSeconds(miliseconds: number | boolean): string {
+    if (typeof miliseconds === 'number') {
+      if (miliseconds / 1000 > 60){
+        return (miliseconds / 60000).toFixed(1); // Convert to minutes if greater than 60 seconds
+      }
+      return (miliseconds / 1000).toFixed(1); // Convert to seconds
+    }
+    return miliseconds.toString(); // Handle boolean case
+  }
+  
+  updateNutrientPumpDurations() {
+    this.isLoading = true;
+    this.socketService.sendNutrientPumpsDurations({
+      duration: [
+        this.pumpStatusData.phUpPump.duration,
+        this.pumpStatusData.phDownPump.duration,
+        this.pumpStatusData.ecPump.duration
+      ]
+    }).pipe(first()).subscribe({
+      next: (response) => {
+        console.log("Nutrient Pumps settings updated:", response);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error("Error updating Nutrient Pumps settings:", error);
+        this.isLoading = false;
+      }
     });
   }
 
   constructor(private socketService: SocketService) { }
 
-  objectKeys(obj: any): string[] {
-    return Object.keys(obj);
-  }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  // togglePump(key: string): void {
-  //   // this.pumpStatusData[key] = !this.pumpStatusData[key];
-  //   // Optional: send status to server here
-  //   console.log(this.pumpStatusData)
-  //   console.log(`${key} is now ${this.pumpStatusData[key] ? 'ON' : 'OFF'}`);
-
-  //   // Emit the pump control command to the backend
-  //   this.socketService.controlPump(this.pumpStatusData);
-  // }
 }

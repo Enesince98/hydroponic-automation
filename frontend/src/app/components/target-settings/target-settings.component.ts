@@ -4,18 +4,17 @@ import { SocketService } from '../../services/socket.service';
 import { FormsModule } from '@angular/forms';
 import { MatFormField, MatInputModule, MatLabel } from '@angular/material/input';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
-import { CommonModule } from '@angular/common';
+import { CommonModule, TitleCasePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { LoaderComponent } from '../loader/loader.component';
-import isEqual from 'lodash/isEqual';
-import { combineLatest, Subject, takeUntil } from 'rxjs';
+import { combineLatest, concat, concatMap, delay, first, Subject, takeUntil, timer } from 'rxjs';
 import { Limits } from '../../types';
 
 @Component({
   selector: 'app-target-settings',
   templateUrl: './target-settings.component.html',
-  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon],
+  imports: [LoaderComponent, CommonModule, FormsModule, MatLabel, MatFormField, MatCardContent, MatCardTitle, MatCardHeader, MatCard, MatInputModule, MatButtonModule, MatIcon, TitleCasePipe],
   styleUrls: ['./target-settings.component.scss']
 })
 export class TargetSettingsComponent implements OnInit, OnDestroy {
@@ -30,10 +29,14 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
   constructor(private socketService: SocketService) { }
 
   ngOnInit(): void {
-    combineLatest([
+    this.loadLimits();
+  }
+
+  loadLimits() {
+  combineLatest([
       this.socketService.onPhLimits(),
       this.socketService.onEcLimits(),
-    ]).pipe(takeUntil(this.destroy$)).subscribe(
+    ]).pipe(first()).subscribe(
         {
       next: ([phLimits, ecLimits]) => {
         this.values = {
@@ -56,14 +59,30 @@ export class TargetSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  onBlur(key: string, field: string, data: FocusEvent) {
-    const fieldAsserted = field as 'min' | 'max' | 'target'
-    const delta = Number((data.target as HTMLInputElement).value);
+  incrementLimit(type: 'Ph' | 'Ec', limit: 'min' | 'max' | 'target' | 'delta') {
+    this.values[type][limit] = Math.round((this.values[type][limit] + 0.1)*10)/10;;
+    console.log(`Incremented ${type} ${limit} to`, this.values[type][limit]);
+  }
+  decreaseLimit(type: 'Ph' | 'Ec', limit: 'min' | 'max' | 'target' | 'delta') {
+    this.values[type][limit] = Math.round((this.values[type][limit] - 0.1)*10)/10;;
+    console.log(`Incremented ${type} ${limit} to`, this.values[type][limit]);
   }
 
-  round(value: number, precision = 2): number {
-    return parseFloat(value.toFixed(precision));
-  }
+updateTargetLimits() {
+  this.isLoading = true;
+  this.socketService.sendLimits([
+    this.values.Ph,this.values.Ec
+  ]).pipe(first()).subscribe({
+    next: (response) => {
+      console.log("Target limits updated:", response);
+      this.loadLimits();
+    },
+    error: (error) => {
+      console.error("Error updating target limits:", error);
+      this.isLoading = false;
+    }
+  });
+}
 
   ngOnDestroy() {
     this.destroy$.next();

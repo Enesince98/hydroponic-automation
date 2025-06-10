@@ -6,6 +6,7 @@ import { ChartsComponent } from './components/charts/charts.component';
 import { CallibrationComponent } from './components/callibration/callibration.component';
 import { LightComponent } from './components/light/light.component';
 import { WaterPumpControlComponent } from './components/water-pump-control/water-pump-control.component';
+import { HistoryComponent } from './components/history/history.component';
 
 export const routes: Routes = [
 	{ path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -16,5 +17,6 @@ export const routes: Routes = [
 	{ path: 'calibration', component: CallibrationComponent },
 	{ path: 'light', component: LightComponent },
 	{ path: 'water', component: WaterPumpControlComponent },
+	{ path: 'history', component: HistoryComponent },
 	{ path: '**', redirectTo: 'dashboard' }
 ];

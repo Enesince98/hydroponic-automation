@@ -10,13 +10,13 @@
   <div class="limits-section">
     <h3>pH</h3>
     <div class="limit-row" *ngFor="let item of values.Ph | keyvalue">
-      <span class="limit-label">sa</span>
+      <span class="limit-label">{{item.key | titlecase}}</span>
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="decreaseLimit('Ph', item.key)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display"/>
-        <button mat-mini-fab color="primary" aria-label="Increase">
+        <input matInput type="number" class="value-display" [ngModel] = "item.value" disabled/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="incrementLimit('Ph', item.key)">
           <mat-icon>add</mat-icon>
         </button>
       </div>
@@ -25,17 +25,22 @@
     <div class="limits-section">
     <h3>EC</h3>
     <div class="limit-row" *ngFor="let item of values.Ec | keyvalue">
-      <span class="limit-label">sa</span>
+      <span class="limit-label">{{item.key | titlecase}}</span>
       <div class="limit-controls">
-        <button mat-mini-fab color="warn" aria-label="Decrease">
+        <button mat-mini-fab color="warn" aria-label="Decrease" (click)="decreaseLimit('Ec', item.key)">
           <mat-icon>remove</mat-icon>
         </button>
-        <input matInput type="number" class="value-display"/>
-        <button mat-mini-fab color="primary" aria-label="Increase">
+        <input matInput type="number" class="value-display" [ngModel] = "item.value" disabled/>
+        <button mat-mini-fab color="primary" aria-label="Increase" (click)="incrementLimit('Ec', item.key)">
           <mat-icon>add</mat-icon>
         </button>
       </div>
     </div>
   </div>
+</div>
+<div class = "save-button-container">
+  <button mat-raised-button color="primary" (click)="updateTargetLimits()">
+    <mat-icon>save</mat-icon> Save Settings
+  </button>
 </div>
 </ng-template>

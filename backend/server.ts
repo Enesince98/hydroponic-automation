@@ -14,7 +14,7 @@ httpServer.listen(3000, () => {
 
 const port = new SerialPort({
   // path: '/dev/cu.usbserial-11420', // Windows "COM5"
-  path: 'COM5',
+  path: '/dev/cu.usbserial-110',
   baudRate: 9600,
 });
 
@@ -52,37 +52,49 @@ port.on('error', (err) => {
 io.on('connection', (socket) => {
   console.log(`İstemci bağlandı: ${socket.id}`);
 
-  // 1. pH limits
-  socket.on('updatePhLimits', (limits: Limits) => {
-    if (validateLimits(limits)) {
-      port.write(JSON.stringify({ phLimits: limits }) + '\n', (err) => errorHandler(err));
-    }
-  });
-
-  // 2. EC limits
-  socket.on('updateEcLimits', (limits: Limits) => {
-    if (validateLimits(limits)) {
-      port.write(JSON.stringify({ ecLimits: limits }) + '\n', (err) => errorHandler(err));
+  // 1. pH-EC limits
+  socket.on('updateLimits', (limits :  Limits[], callback) => {
+    if (limits.every((i) => validateLimits(i))) {
+      port.write(JSON.stringify({ pl: limits[0] }) + '\n', (err) => errorHandler(err));
+      setTimeout(() => {
+        port.write(JSON.stringify({ el: limits[1] }) + '\n', (err) => errorHandler(err));
+      }, 1000);
+      
+      callback({ status: 'ok', receivedAt: Date.now() });
     }
   });
 
   // 3. pH up/down/ec pumps duration
-  ['phUpPump', 'phDownPump', 'ecPump'].forEach((pumpKey) => {
-    socket.on(`update${pumpKey}`, (duration: number) => {
-      if (typeof duration === 'number' && duration > 0) {
-        port.write(JSON.stringify({ [pumpKey]: { duration } }) + '\n', (err) => errorHandler(err));
+    socket.on(`updateNutrientPumps`, (payload: {duration: number[]}, callback) => {
+      if (!Array.isArray(payload?.duration) || payload.duration.length !== 3) {
+        return callback({ status: 'error', message: 'Invalid duration format' });
       }
+        const jsonToSend = {
+          pup: { d: payload.duration[0] },
+          pdp: { d: payload.duration[1] },
+          ep: { d: payload.duration[2] }
+        };
+        port.write(JSON.stringify(jsonToSend) + '\n', (err) => errorHandler(err));
+        callback({ status: 'ok', receivedAt: Date.now() });
     });
-  });
 
   // 4. Water/light onTime-offTime
-  ['waterPump', 'lightSource'].forEach((deviceKey) => {
-    socket.on(`update${deviceKey}`, (payload: { onTime: number; offTime: number }, callback) => {
+  ['wp', 'ls'].forEach((deviceKey) => {
+    socket.on(
+      `update${deviceKey}`, 
+      (payload: { onTime: number; offTime: number }, callback) => {
       if (
         typeof payload?.onTime === 'number' &&
         typeof payload?.offTime === 'number'
       ) {
-        port.write(JSON.stringify({ [deviceKey]: { onTime: payload.onTime, offTime: payload.offTime } }) + '\n', (err) => errorHandler(err));
+        port.write(JSON.stringify(
+          { 
+            [deviceKey]: { 
+              onTime: payload.onTime, 
+              offTime: payload.offTime 
+            } 
+          }
+        ) + '\n', (err) => errorHandler(err));
         callback({ status: 'ok', receivedAt: Date.now() });
       }
     });

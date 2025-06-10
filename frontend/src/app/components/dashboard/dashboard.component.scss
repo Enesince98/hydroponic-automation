@@ -1,3 +1,17 @@
+:host {
+  display: block;
+  height:100%;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.limits-card{
+  height:100%;
+}
+
 .dashboard-container {
   display: flex;
   flex-direction: column;
@@ -20,16 +34,21 @@
 
 
 .dashboard-grid {
+  height:100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px; /* elemanlar arası boşluk */
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .sensor-card {
   text-align: center;
   padding: 10px;
   border-radius: 12px;
+  min-height: 100px;
+  max-width: 250px;
 
   &.temperature {
     background: #fff3e0;
@@ -44,6 +63,26 @@
   &.ec {
     background: #e3f2fd;
     color: #1e88e5;
+  }
+
+  &.environmentTemp {
+    background: #fce4ec;
+    color: #d81b60;
+  }
+
+  &.humidity {
+    background: #e3f2fd;
+    color: #1e88e5;
+  }
+
+  &.waterTemp {
+    background: #e8f5e9;
+    color: #43a047;
+  }
+
+  &.lightLevel {
+    background: #fff3e0;
+    color: #ef6c00;
   }
 
   .sensor-value {
@@ -77,10 +116,14 @@
   }
 
   mat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: #f5f5f5;
     text-align: center;
     padding: 10px;
     border-radius: 16px 16px 0 0;
+    height:25%;
   }
 
   mat-card-title {
@@ -99,6 +142,7 @@
     padding: 5px 10px 5px 10px;
     justify-content: center;
     align-items: center;
+    gap:10px;
   }
 
   .status-icon {
@@ -110,11 +154,19 @@
   }
 
   .status-on {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height:75%;
     background: #4caf50; /* Red for OFF */
     color: #FFFAEF;
   }
 
-  .status-off {
+  .status-off { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height:75%;
     background: #D11D27; /* Red for OFF */
     color: #FFFAEF;
   }
@@ -144,3 +196,15 @@ mat-card-content{
   display: flex;
   gap: 10px;
 }
+
+@media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr); /* Orta ekranlarda 2 sütun */
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr; /* Küçük ekranlarda tek sütun */
+      }
+    }
