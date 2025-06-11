@@ -1,6 +1,6 @@
 <mat-card class="limits-card">
   <mat-card-header>
-    <mat-card-title><mat-icon>dashboard</mat-icon> Dashboard</mat-card-title>
+    <mat-card-title class="sensor-card-title"><mat-icon>dashboard</mat-icon> Dashboard</mat-card-title>
   </mat-card-header>
 <ng-container *ngIf="isLoading; else dashboard">
 	<app-loader></app-loader>
@@ -9,66 +9,59 @@
   <div class="dashboard-grid">
 
     <mat-card class="sensor-card ph">
-      <mat-card-title>pH Level</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">pH Level</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ sensorData.ph | number:'1.2-2' }}</div>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="sensor-card ec">
-      <mat-card-title>EC Level</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">EC Level</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ sensorData.ec | number:'1.2-2' }} μS/cm</div>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="sensor-card waterTemp">
-      <mat-card-title>Water Temp</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">Water Temp</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ environmentalData.waterTemp | number:'1.2-2' }} °C</div>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="sensor-card environmentTemp">
-      <mat-card-title>Environmental Temp</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">Environmental Temp</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ environmentalData.environmentTemp | number:'1.2-2' }} °C</div>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="sensor-card humidity">
-      <mat-card-title>Humidity</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">Humidity</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ environmentalData.humidity | number:'1.2-2' }} %</div>
       </mat-card-content>
     </mat-card>
 
     <mat-card class="sensor-card lightLevel">
-      <mat-card-title>Light Level</mat-card-title>
-      <mat-card-content>
+      <mat-card-title class="sensor-card-title">Light Level</mat-card-title>
+      <mat-card-content class="sensor-card-content">
         <div class="sensor-value">{{ environmentalData.lightLevel| number:'1.2-2' }} lux</div>
       </mat-card-content>
     </mat-card>
-      <mat-card class="pump-status-card" *ngFor="let pump of pumpNames; index as i">
-        <mat-card-header>
-          <mat-card-title>{{ pumpLabels[i] }}</mat-card-title>
-        </mat-card-header>
-          <mat-card-content [ngClass]="pumpStatusData[pump].isRunning ? 'status-on' : 'status-off'">
-          <div class="status-container">
-            <mat-icon 
+
+    <mat-card class="sensor-card" [ngClass]="pumpStatusData[pump].isRunning ? 'status-on' : 'status-off'" *ngFor="let pump of pumpNames; index as i">
+      <mat-card-title class="sensor-card-title">{{ pumpLabels[i] }}</mat-card-title>
+      <mat-card-content class="sensor-card-content pump-card-content">
+        <div class="sensor-value">{{pumpStatusData[pump].isRunning ? "ON" : "OFF"}}</div>
+        <mat-icon 
               class="status-icon"
               aria-hidden="false" 
               aria-label="Example home icon" 
               fontIcon="power_settings_new"
             ></mat-icon>
-            <div class="status-text">
-              <div class="status-label">
-                {{pumpStatusData[pump].isRunning ? "ON" : "OFF"}}
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      </mat-card-content>
+    </mat-card>
   </div>
 </ng-template>
 
