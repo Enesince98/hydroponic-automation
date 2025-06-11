@@ -7,11 +7,13 @@ import { LoaderComponent } from '../loader/loader.component';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { EnvironmentalData, NutrientPump, SensorData } from '../../types';
+import { MockSocketService } from '../../services/mock-socket.service';
 @Component({
   selector: 'app-dashboard',
   imports: [LoaderComponent, CommonModule, MatIconModule, DecimalPipe, MatCardModule, MatSlideToggleModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrl: './dashboard.component.scss',
+  standalone: true,
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
